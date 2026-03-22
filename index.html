@@ -362,39 +362,6 @@ b,strong{color:var(--text);font-weight:700}
 .ftag{font-size:7.5px;color:var(--dim);font-weight:700;letter-spacing:.8px;text-transform:uppercase}
 .fsep{color:var(--dim);opacity:.4}
 
-/* OAuth button */
-.btn-oauth{
-  display:inline-flex;align-items:center;gap:10px;
-  background:linear-gradient(135deg,#e5a00d,#cc7b19);
-  border:none;border-radius:10px;padding:14px 32px;
-  font-size:15px;font-weight:800;color:#fff;
-  cursor:pointer;font-family:inherit;transition:all .2s;
-  letter-spacing:.2px;
-  box-shadow:0 4px 20px rgba(229,160,13,0.3);
-}
-.btn-oauth:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(229,160,13,0.4)}
-.btn-oauth:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
-
-/* Waiting state */
-.oauth-waiting{
-  display:flex;align-items:center;gap:14px;
-  background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.2);
-  border-radius:10px;padding:14px 16px;
-}
-.oauth-pulse{
-  width:16px;height:16px;border-radius:50%;flex-shrink:0;
-  background:var(--a1);
-  box-shadow:0 0 0 0 rgba(167,139,250,.4);
-  animation:oauthPulse 1.5s infinite;
-}
-@keyframes oauthPulse{
-  0%{box-shadow:0 0 0 0 rgba(167,139,250,.5)}
-  70%{box-shadow:0 0 0 10px rgba(167,139,250,0)}
-  100%{box-shadow:0 0 0 0 rgba(167,139,250,0)}
-}
-.oauth-wait-text{flex:1}
-.oauth-wait-text #oauthMsg{font-size:13px;font-weight:600;color:var(--text)}
-
 /* Reset link */
 #resetLink{
   font-size:11px;color:var(--muted);cursor:pointer;margin-top:10px;
@@ -427,7 +394,7 @@ b,strong{color:var(--text);font-weight:700}
   <div class="wiz-steps">
     <div class="wiz-step active" id="ws-1">
       <div class="wiz-step-num">1</div>
-      <div class="wiz-step-lbl">Connexion</div>
+      <div class="wiz-step-lbl">Token</div>
     </div>
     <div class="wiz-conn"></div>
     <div class="wiz-step" id="ws-2">
@@ -441,53 +408,55 @@ b,strong{color:var(--text);font-weight:700}
     </div>
   </div>
 
-  <!-- ── ÉTAPE 1 : OAuth Plex ── -->
+  <!-- ── ÉTAPE 1 : TOKEN ── -->
   <div id="step-1" class="panel">
     <div class="panel-hd">
-      <span class="panel-icon">🔐</span>
+      <span class="panel-icon">🔑</span>
       <div>
-        <div class="panel-title">Connexion à Plex</div>
-        <div class="panel-desc">Autorisation sécurisée via votre compte Plex existant</div>
+        <div class="panel-title">Token Plex</div>
+        <div class="panel-desc">Récupération automatique en 10 secondes</div>
       </div>
     </div>
     <div class="panel-body">
 
-      <!-- Bouton OAuth principal -->
-      <div style="text-align:center;padding:12px 0 8px">
-        <button class="btn-oauth" id="btnOAuth" onclick="startOAuth()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
-          </svg>
-          Se connecter avec Plex
-        </button>
-      </div>
-
-      <!-- État OAuth -->
-      <div id="oauthState" style="display:none">
-        <div class="oauth-waiting" id="oauthWaiting">
-          <div class="oauth-pulse"></div>
-          <div class="oauth-wait-text">
-            <div id="oauthMsg">En attente de votre autorisation dans le popup Plex…</div>
-            <div style="font-size:11px;color:var(--dim);margin-top:4px">Un popup s'est ouvert sur <strong>app.plex.tv</strong> — connectez-vous et cliquez sur <strong>Autoriser</strong></div>
+      <div class="bm-box">
+        <div class="bm-title">🔖 Méthode automatique — glissez dans vos favoris</div>
+        <div class="bm-row">
+          <a class="bm-link" href="javascript:(function()%7Bvar%20keys%3D%5B'myPlexAccessToken'%2C'plexToken'%2C'X-Plex-Token'%5D%3Bvar%20token%3Dnull%3Bfor(var%20i%3D0%3Bi%3Ckeys.length%3Bi%2B%2B)%7Bvar%20v%3DlocalStorage.getItem(keys%5Bi%5D)%3Bif(v%26%26v.length%3E10)%7Btoken%3Dv%3Bbreak%3B%7D%7Dif(!token)%7Bvar%20all%3DObject.keys(localStorage)%3Bfor(var%20j%3D0%3Bj%3Call.length%3Bj%2B%2B)%7Bvar%20val%3DlocalStorage.getItem(all%5Bj%5D)%3Bif(typeof%20val%3D%3D%3D'string'%26%26val.length%3D%3D20%26%26%2F%5E%5Ba-zA-Z0-9%5D%2B%24%2F.test(val))%7Btoken%3Dval%3Bbreak%3B%7D%7D%7Dif(token)%7Bnavigator.clipboard.writeText(token).then(function()%7Balert('%E2%9C%93%20Token%20copi%C3%A9%20!%5Cn%5CnRevenez%20sur%20Plex%20Dashboard%20et%20collez-le%20dans%20le%20champ.')%7D).catch(function()%7Bprompt('Copiez%20(Ctrl%2BC)%20:',token)%7D)%7Delse%7Balert('Token%20non%20trouv%C3%A9.%20Connectez-vous%20sur%20app.plex.tv%20et%20r%C3%A9essayez.')%7D%7D)();" title="Glissez dans vos favoris">
+            🎬 Extraire token Plex
+          </a>
+          <div class="bm-hint">
+            1. Glissez ce bouton dans vos favoris<br>
+            2. Ouvrez <strong>app.plex.tv</strong> et connectez-vous<br>
+            3. Cliquez sur le favori → token copié<br>
+            4. Collez ci-dessous
           </div>
         </div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
-          <button class="btn btn-ghost" onclick="cancelOAuth()" id="btnCancel" style="font-size:12px">✕ Annuler</button>
-          <button class="btn btn-ghost" onclick="reopenPopup()" style="font-size:12px">↗ Rouvrir le popup</button>
-        </div>
       </div>
 
-      <div class="err-msg" id="oauthErr"></div>
+      <div class="field">
+        <label class="field-lbl">Token Plex</label>
+        <div class="field-row">
+          <div class="field" style="flex:1">
+            <input type="password" id="tokenInput" class="field-input"
+                   placeholder="Collez votre token ici…" autocomplete="off">
+          </div>
+          <button class="btn btn-ghost" onclick="toggleToken()" style="flex-shrink:0;margin-bottom:0">👁</button>
+        </div>
+        <div class="err-msg" id="tokenErr"></div>
+      </div>
 
       <div class="tip tip-violet">
         <span class="tip-i">ℹ️</span>
-        <span>Un popup <strong>app.plex.tv</strong> va s'ouvrir — si vous êtes déjà connecté, un simple clic sur <strong>Autoriser</strong> suffit. Aucun token ne vous est demandé.</span>
-      </div>
-      <div class="tip tip-yellow">
-        <span class="tip-i">⚠️</span>
-        <span>Autorisez les popups pour ce site si votre navigateur les bloque, ou utilisez le bouton <em>Rouvrir le popup</em>.</span>
+        <span>Votre token n'est jamais transmis ailleurs qu'aux serveurs <strong>plex.tv</strong>. Il reste dans votre onglet et disparaît à la fermeture.</span>
       </div>
 
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-lg" id="btnConnect" onclick="connectPlex()">
+          🔌 Connexion à Plex
+        </button>
+        <span class="status st-idle" id="connectStatus">En attente</span>
+      </div>
     </div>
   </div>
 
@@ -804,150 +773,69 @@ function showStep(n) {
 }
 
 function resetWizard() {
-  cancelOAuth();
   STATE = { token:'', serverName:'', serverUri:'', selectedLib:null, items:[], D:null };
   document.getElementById('wizard').style.display = 'flex';
   document.getElementById('controls').style.display = 'none';
   document.getElementById('card').style.display = 'none';
   document.getElementById('resetLink').style.display = 'none';
-  document.getElementById('oauthErr').classList.remove('show');
   showStep(1);
+  document.getElementById('tokenInput').value = '';
+  document.getElementById('connectStatus').className = 'status st-idle';
+  document.getElementById('connectStatus').textContent = 'En attente';
+  document.getElementById('tokenErr').classList.remove('show');
 }
 
 // ══════════════════════════════════════════════════════
-// STEP 1 — OAUTH PIN FLOW
+// STEP 1 — CONNEXION
 // ══════════════════════════════════════════════════════
-let _oauthPinId   = null;
-let _oauthPinCode = null;
-let _oauthPopup   = null;
-let _oauthTimer   = null;
+function toggleToken() {
+  const inp = document.getElementById('tokenInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
 
-async function startOAuth() {
-  const btn = document.getElementById('btnOAuth');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Génération du code…';
-  document.getElementById('oauthErr').classList.remove('show');
-
-  try {
-    // 1 — Obtain a PIN from plex.tv
-    const pinResp = await fetch('https://plex.tv/api/v2/pins', {
-      method: 'POST',
-      headers: {
-        ...plexHeaders(),
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'strong=true',
-    });
-    if (!pinResp.ok) throw new Error('Impossible d\'obtenir un code d\'autorisation (HTTP ' + pinResp.status + ').');
-
-    const pin = await pinResp.json();
-    _oauthPinId   = pin.id;
-    _oauthPinCode = pin.code;
-
-    // 2 — Open the Plex auth page in a popup
-    openAuthPopup();
-
-    // 3 — Show waiting UI
-    btn.style.display = 'none';
-    document.getElementById('oauthState').style.display = 'block';
-
-    // 4 — Poll for token
-    _oauthTimer = setInterval(pollPin, 2000);
-
-  } catch(err) {
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg> Se connecter avec Plex';
-    showOAuthErr(err.message);
+async function connectPlex() {
+  const token = document.getElementById('tokenInput').value.trim();
+  if (!token || token.length < 10) {
+    showTokenErr('Token invalide ou trop court.');
+    return;
   }
-}
 
-function openAuthPopup() {
-  const authUrl = 'https://app.plex.tv/auth#' + new URLSearchParams({
-    clientID: CLIENT_ID,
-    code: _oauthPinCode,
-    'context[device][product]': 'Plex Dashboard',
-    'context[device][platform]': 'Web',
-    'context[device][device]': 'Browser',
-  }).toString();
+  const btn = document.getElementById('btnConnect');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Connexion…';
+  setStatus('connectStatus', 'load', '🔄 Connexion à plex.tv…');
+  document.getElementById('tokenErr').classList.remove('show');
 
-  const w = 600, h = 700;
-  const left = Math.round(screen.width / 2 - w / 2);
-  const top  = Math.round(screen.height / 2 - h / 2);
-  _oauthPopup = window.open(authUrl, 'plexAuth',
-    `width=${w},height=${h},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=yes`);
-}
-
-function reopenPopup() {
-  if (_oauthPopup && !_oauthPopup.closed) _oauthPopup.focus();
-  else openAuthPopup();
-}
-
-async function pollPin() {
-  if (!_oauthPinId) return;
   try {
-    const resp = await fetch(`https://plex.tv/api/v2/pins/${_oauthPinId}`, {
-      headers: plexHeaders(),
-    });
-    if (!resp.ok) return;
-    const data = await resp.json();
-
-    if (data.authToken) {
-      // ✓ Got the token
-      clearInterval(_oauthTimer);
-      _oauthTimer = null;
-      if (_oauthPopup && !_oauthPopup.closed) _oauthPopup.close();
-
-      document.getElementById('oauthMsg').textContent = '✓ Autorisé ! Récupération de vos serveurs…';
-
-      STATE.token = data.authToken;
-      await discoverServers();
-    }
-    // If expired (pin.expiresAt < now), cancel
-    if (data.expiresAt && new Date(data.expiresAt) < new Date()) {
-      cancelOAuth();
-      showOAuthErr('Le code d\'autorisation a expiré. Veuillez réessayer.');
-    }
-  } catch { /* network hiccup — retry next tick */ }
-}
-
-function cancelOAuth() {
-  clearInterval(_oauthTimer); _oauthTimer = null;
-  _oauthPinId = _oauthPinCode = null;
-  if (_oauthPopup && !_oauthPopup.closed) _oauthPopup.close();
-  document.getElementById('oauthState').style.display = 'none';
-  const btn = document.getElementById('btnOAuth');
-  btn.style.display = 'inline-flex';
-  btn.disabled = false;
-  btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg> Se connecter avec Plex';
-}
-
-function showOAuthErr(msg) {
-  const el = document.getElementById('oauthErr');
-  el.textContent = msg; el.classList.add('show');
-}
-
-// ── Shared server discovery (used after OAuth) ──────
-async function discoverServers() {
-  try {
+    // Discover servers via plex.tv (CORS-friendly)
     const resp = await fetch(
       'https://plex.tv/api/v2/resources?includeHttps=1&includeRelay=1&includeIPv6=0',
-      { headers: plexHeaders(STATE.token) }
+      { headers: plexHeaders(token) }
     );
     if (resp.status === 401) throw new Error('Token invalide ou expiré.');
     if (!resp.ok) throw new Error('Erreur plex.tv : HTTP ' + resp.status);
 
     const resources = await resp.json();
     const servers = resources.filter(r => r.provides && r.provides.includes('server'));
+
     if (!servers.length) throw new Error('Aucun serveur Plex trouvé pour ce compte.');
+
+    STATE.token = token;
 
     if (servers.length === 1) {
       await loadServer(servers[0]);
     } else {
+      // Multiple servers — show picker
+      setStatus('connectStatus', 'ok', `✓ ${servers.length} serveurs trouvés`);
       showServerPicker(servers);
     }
+
   } catch(err) {
-    cancelOAuth();
-    showOAuthErr(err.message);
+    showTokenErr(err.message);
+    setStatus('connectStatus', 'err', '✗ Échec');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔌 Connexion à Plex';
   }
 }
 
@@ -1523,6 +1411,10 @@ function setStatus(id, type, msg) {
   const map = {idle:'st-idle',load:'st-load',ok:'st-ok',err:'st-err'};
   el.className = 'status ' + (map[type]||'st-idle');
   el.textContent = msg;
+}
+function showTokenErr(msg) {
+  const el = document.getElementById('tokenErr');
+  el.textContent = msg; el.classList.add('show');
 }
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
