@@ -486,37 +486,62 @@ b,strong{color:var(--text);font-weight:700}
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
 
-      <!-- Fallback token manuel (accordéon) -->
+      <!-- Fallback manuel (accordéon) -->
       <div>
         <button onclick="toggleManual()" style="background:none;border:none;cursor:pointer;font-family:inherit;
           font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;padding:0;
           text-decoration:underline;text-underline-offset:3px;" id="btnManualToggle">
-          <span id="manualArrow">▶</span> Saisie manuelle du token
+          <span id="manualArrow">▶</span> Connexion manuelle (token + IP)
         </button>
-        <div id="manualBlock" style="display:none;margin-top:10px">
-          <div class="bm-box" style="margin-bottom:10px">
-            <div class="bm-title" style="margin-bottom:8px">🔖 Récupérer votre token (bookmarklet)</div>
-            <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
-              <a class="bm-link" style="font-size:12px;padding:7px 14px"
-                 href="javascript:(function()%7Bvar%20keys%3D%5B'myPlexAccessToken'%2C'plexToken'%2C'X-Plex-Token'%5D%3Bvar%20token%3Dnull%3Bfor(var%20i%3D0%3Bi%3Ckeys.length%3Bi%2B%2B)%7Bvar%20v%3DlocalStorage.getItem(keys%5Bi%5D)%3Bif(v%26%26v.length%3E10)%7Btoken%3Dv%3Bbreak%3B%7D%7Dif(!token)%7Bvar%20all%3DObject.keys(localStorage)%3Bfor(var%20j%3D0%3Bj%3Call.length%3Bj%2B%2B)%7Bvar%20val%3DlocalStorage.getItem(all%5Bj%5D)%3Bif(typeof%20val%3D%3D%3D'string'%26%26val.length%3D%3D20%26%26%2F%5E%5Ba-zA-Z0-9%5D%2B%24%2F.test(val))%7Btoken%3Dval%3Bbreak%3B%7D%7D%7Dif(token)%7Bnavigator.clipboard.writeText(token).then(function()%7Balert('%E2%9C%93%20Token%20copi%C3%A9%20!%5Cn%5CnCollez-le%20dans%20le%20champ%20ci-dessous.')%7D).catch(function()%7Bprompt('Copiez%20(Ctrl%2BC)%20:',token)%7D)%7Delse%7Balert('Token%20non%20trouv%C3%A9.%20Connectez-vous%20sur%20app.plex.tv.')%7D%7D)();"
-                 title="Glissez dans vos favoris">🎬 Extraire token</a>
-              <div style="font-size:11px;color:var(--muted);line-height:1.7">
-                1. Glissez dans vos favoris<br>
-                2. Ouvrez <strong>app.plex.tv</strong> (connecté)<br>
-                3. Cliquez le favori → token copié
-              </div>
-            </div>
-          </div>
+
+        <div id="manualBlock" style="display:none;margin-top:12px;flex-direction:column;gap:10px">
+
+          <!-- Token -->
           <div class="field">
             <label class="field-lbl">Token Plex</label>
             <div style="display:flex;gap:8px">
               <input type="password" id="tokenInput" class="field-input"
-                     placeholder="Collez votre token ici…" autocomplete="off" style="flex:1">
-              <button class="btn btn-ghost" onclick="toggleToken()" style="flex-shrink:0">👁</button>
-              <button class="btn btn-primary" onclick="connectWithToken()" id="btnTokenConnect">→</button>
+                     placeholder="Collez votre token…" autocomplete="off" style="flex:1">
+              <button class="btn btn-ghost" onclick="toggleToken()" style="flex-shrink:0" title="Afficher/masquer">👁</button>
             </div>
-            <div class="err-msg" id="tokenErr"></div>
+            <div style="font-size:10px;color:var(--dim);margin-top:3px">
+              Récupérez-le via le bookmarklet :
+              <a class="bm-link" style="font-size:10px;padding:2px 8px;display:inline-flex;border-radius:5px"
+                 href="javascript:(function()%7Bvar%20keys%3D%5B'myPlexAccessToken'%2C'plexToken'%2C'X-Plex-Token'%5D%3Bvar%20token%3Dnull%3Bfor(var%20i%3D0%3Bi%3Ckeys.length%3Bi%2B%2B)%7Bvar%20v%3DlocalStorage.getItem(keys%5Bi%5D)%3Bif(v%26%26v.length%3E10)%7Btoken%3Dv%3Bbreak%3B%7D%7Dif(!token)%7Bvar%20all%3DObject.keys(localStorage)%3Bfor(var%20j%3D0%3Bj%3Call.length%3Bj%2B%2B)%7Bvar%20val%3DlocalStorage.getItem(all%5Bj%5D)%3Bif(typeof%20val%3D%3D%3D'string'%26%26val.length%3D%3D20%26%26%2F%5E%5Ba-zA-Z0-9%5D%2B%24%2F.test(val))%7Btoken%3Dval%3Bbreak%3B%7D%7D%7Dif(token)%7Bnavigator.clipboard.writeText(token).then(function()%7Balert('%E2%9C%93%20Token%20copi%C3%A9%20!%5Cn%5CnCollez-le%20dans%20le%20champ%20ci-dessous.')%7D).catch(function()%7Bprompt('Copiez%20(Ctrl%2BC)%20:',token)%7D)%7Delse%7Balert('Token%20non%20trouv%C3%A9.%20Connectez-vous%20sur%20app.plex.tv.')%7D%7D)();"
+                 title="Glissez dans vos favoris">🎬 Extraire depuis app.plex.tv</a>
+            </div>
           </div>
+
+          <!-- IP + Port -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div class="field" style="flex:2;min-width:140px">
+              <label class="field-lbl">Adresse IP / Hôte</label>
+              <input type="text" id="manualHost" class="field-input"
+                     placeholder="ex: 192.168.1.10 ou monserveur.fr" autocomplete="off">
+            </div>
+            <div class="field" style="flex:0 0 90px">
+              <label class="field-lbl">Port</label>
+              <input type="number" id="manualPort" class="field-input" value="32400" min="1" max="65535">
+            </div>
+            <div class="field" style="flex:0 0 auto;padding-top:22px">
+              <label class="form-toggle" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer">
+                <input type="checkbox" id="manualHttps" style="accent-color:var(--a1)"> HTTPS
+              </label>
+            </div>
+          </div>
+
+          <div class="tip tip-yellow" style="margin-top:0">
+            <span class="tip-i">⚠️</span>
+            <span>La connexion directe par IP peut être bloquée par CORS depuis <strong>anatharias.github.io</strong>. Si c'est le cas, téléchargez la page et ouvrez-la en local (<code>file://</code> ou <code>localhost</code>).</span>
+          </div>
+
+          <div class="err-msg" id="tokenErr"></div>
+
+          <button class="btn btn-primary" onclick="connectManual()" id="btnManualConnect"
+                  style="align-self:flex-start">
+            🔌 Connexion
+          </button>
+
         </div>
       </div>
 
@@ -926,11 +951,24 @@ function reopenPopup() {
 }
 
 // ── Manuel token fallback ───────────────────────────
-function toggleManual() {
+function openManualWithHint(hint) {
+  // Show step 1 in case we navigated away
+  showStep(1);
+  // Open manual section automatically
+  toggleManual(true);
+  // Pre-fill error hint
+  const err = document.getElementById('tokenErr');
+  err.textContent = hint;
+  err.classList.add('show');
+  // Scroll to manual section
+  document.getElementById('manualBlock').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function toggleManual(forceOpen) {
   const block = document.getElementById('manualBlock');
   const arrow = document.getElementById('manualArrow');
-  const open  = block.style.display === 'none';
-  block.style.display = open ? 'block' : 'none';
+  const open  = forceOpen || block.style.display === 'none';
+  block.style.display = open ? 'flex' : 'none';
   arrow.textContent   = open ? '▼' : '▶';
 }
 
@@ -939,25 +977,57 @@ function toggleToken() {
   inp.type = inp.type === 'password' ? 'text' : 'password';
 }
 
-async function connectWithToken() {
+async function connectManual() {
   const token = document.getElementById('tokenInput').value.trim();
+  const host  = document.getElementById('manualHost').value.trim();
+  const port  = document.getElementById('manualPort').value.trim() || '32400';
+  const https = document.getElementById('manualHttps').checked;
   const err   = document.getElementById('tokenErr');
   err.classList.remove('show');
+
   if (!token || token.length < 10) {
-    err.textContent = 'Token invalide ou trop court.';
-    err.classList.add('show');
-    return;
+    err.textContent = 'Token requis.'; err.classList.add('show'); return;
   }
-  const btn = document.getElementById('btnTokenConnect');
-  btn.disabled = true; btn.textContent = '…';
+  if (!host) {
+    err.textContent = 'Adresse IP ou hôte requis.'; err.classList.add('show'); return;
+  }
+
+  const btn = document.getElementById('btnManualConnect');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+
+  const uri = `${https ? 'https' : 'http'}://${host}:${port}`;
   STATE.token = token;
+  STATE.serverName = host;
+  STATE.serverUri  = uri;
+
   try {
-    await discoverServers();
+    // Test connection
+    const resp = await fetch(`${uri}/library/sections?X-Plex-Token=${token}`, {
+      headers: plexHeaders(),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (resp.status === 401) throw new Error('Token invalide ou expiré.');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    const data = await resp.json();
+    const dirs = (data.MediaContainer?.Directory || [])
+      .filter(l => l.type === 'show' || l.type === 'movie');
+
+    if (!dirs.length) throw new Error('Aucune bibliothèque Films ou Séries TV trouvée sur ce serveur.');
+
+    showStep(2);
+    document.getElementById('serverLabel').textContent = host + ':' + port;
+    renderLibPicker(dirs);
+
   } catch(e) {
-    err.textContent = e.message; err.classList.add('show');
-    STATE.token = '';
+    const isCors = e instanceof TypeError;
+    err.textContent = isCors
+      ? 'Connexion bloquée (CORS). Depuis GitHub Pages, seule la connexion via le relay Plex fonctionne. Téléchargez la page et ouvrez-la en local pour utiliser une IP directe.'
+      : e.message;
+    err.classList.add('show');
+    STATE.token = ''; STATE.serverUri = '';
   } finally {
-    btn.disabled = false; btn.textContent = '→';
+    btn.disabled = false; btn.innerHTML = '🔌 Connexion';
   }
 }
 async function pollPin() {
@@ -1004,7 +1074,6 @@ function showOAuthErr(msg) {
   el.textContent = msg; el.classList.add('show');
 }
 
-// ── Shared server discovery (used after OAuth) ──────
 async function discoverServers() {
   try {
     const resp = await fetch(
@@ -1026,6 +1095,7 @@ async function discoverServers() {
       showServerPicker(servers);
     }
   } catch(err) {
+    if (err.message === '__silent__') return;
     cancelOAuth();
     showOAuthErr(err.message);
   }
@@ -1068,10 +1138,10 @@ async function loadServer(server) {
   // (direct .plex.direct URLs only allow app.plex.tv as origin)
   if (!isLocal) {
     conns = conns.filter(c => c.relay);
-    if (!conns.length) throw new Error(
-      'Aucune connexion relay disponible pour ce serveur. ' +
-      'Le serveur doit avoir l\'accès relay Plex activé (Paramètres → Réseau → Accès à distance).'
-    );
+    if (!conns.length) {
+      openManualWithHint('Aucune connexion relay trouvée pour ce serveur. Activez l\'accès distant dans Plex (Paramètres → Réseau → Accès à distance) ou saisissez l\'IP manuellement ci-dessous.');
+      throw new Error('__silent__');
+    }
   }
 
   if (!conns.length) throw new Error('Aucune adresse de connexion disponible pour ce serveur.');
@@ -1089,10 +1159,10 @@ async function loadServer(server) {
   }
 
   if (!uri) {
-    if (!isLocal) throw new Error(
-      'Impossible de joindre le serveur via le relay Plex. ' +
-      'Vérifiez que l\'accès à distance est activé dans les paramètres Plex du serveur.'
-    );
+    if (!isLocal) {
+      openManualWithHint('Impossible de joindre le serveur via le relay Plex. Vérifiez que l\'accès distant est activé dans Plex, ou saisissez l\'IP de votre serveur manuellement ci-dessous (depuis un réseau local).');
+      throw new Error('__silent__');
+    }
     throw new Error('Impossible de joindre le serveur. Vérifiez que Plex est démarré.');
   }
 
