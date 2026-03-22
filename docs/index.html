@@ -537,10 +537,15 @@ b,strong{color:var(--text);font-weight:700}
 
           <div class="err-msg" id="tokenErr"></div>
 
-          <button class="btn btn-primary" onclick="connectManual()" id="btnManualConnect"
-                  style="align-self:flex-start">
-            🔌 Connexion
-          </button>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="connectManual()" id="btnManualConnect">
+              🔌 Connexion
+            </button>
+            <a href="plex_dashboard.html" download="plex_dashboard.html" class="btn btn-ghost"
+               onclick="this.href=URL.createObjectURL(new Blob([document.documentElement.outerHTML],{type:'text/html'}))">
+              ⬇️ Télécharger la page
+            </a>
+          </div>
 
         </div>
       </div>
