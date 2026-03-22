@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plex Dashboard — Carte de bibliothèque</title>
+<style>
+/* ═══════════════════════════════════════════════
+   THEMES
+═══════════════════════════════════════════════ */
+:root {
+  --bg-page:#04060d; --bg:#080b12; --bg2:#0d1220; --bg3:#111827;
+  --border:rgba(255,255,255,0.05); --border2:rgba(255,255,255,0.1);
+  --text:#e2e4ea; --muted:#7a8499; --dim:#3a4460;
+  --a1:#a78bfa; --a2:#5eead4; --a3:#34d399; --a4:#fbbf24;
+  --orb1:rgba(139,92,246,0.07); --orb2:rgba(94,234,212,0.05);
+  --hd-grad:linear-gradient(135deg,rgba(139,92,246,0.12) 0%,transparent 70%);
+  --bar-grad:linear-gradient(90deg,#a78bfa,#5eead4);
+  --ctrl-bg:rgba(255,255,255,0.025); --ctrl-bd:rgba(255,255,255,0.12);
+}
+body.theme-foret {
+  --bg-page:#030d06;--bg:#060f08;--bg2:#091410;--bg3:#0c1a11;
+  --a1:#34d399;--a2:#a3e635;--a3:#5eead4;--a4:#fbbf24;
+  --orb1:rgba(52,211,153,0.07);--orb2:rgba(163,230,53,0.05);
+  --hd-grad:linear-gradient(135deg,rgba(52,211,153,0.12) 0%,transparent 70%);
+  --bar-grad:linear-gradient(90deg,#34d399,#a3e635); --dim:#2a4035;
+}
+body.theme-nebula {
+  --bg-page:#060309;--bg:#0a0612;--bg2:#100816;--bg3:#130920;
+  --a1:#f472b6;--a2:#c084fc;--a3:#818cf8;--a4:#fb923c;
+  --orb1:rgba(244,114,182,0.07);--orb2:rgba(192,132,252,0.06);
+  --hd-grad:linear-gradient(135deg,rgba(244,114,182,0.12) 0%,transparent 70%);
+  --bar-grad:linear-gradient(90deg,#f472b6,#c084fc); --dim:#3d1f4a;
+}
+body.theme-cendres {
+  --bg-page:#080808;--bg:#0e0e0e;--bg2:#141414;--bg3:#1a1a1a;
+  --a1:#e2e4ea;--a2:#9ca3af;--a3:#6b7280;--a4:#d1d5db;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --orb1:rgba(226,228,234,0.04);--orb2:rgba(156,163,175,0.03);
+  --hd-grad:linear-gradient(135deg,rgba(226,228,234,0.06) 0%,transparent 70%);
+  --bar-grad:linear-gradient(90deg,#e2e4ea,#9ca3af); --dim:#2a2a2a;
+}
+body.theme-braise {
+  --bg-page:#080400;--bg:#0d0800;--bg2:#130e00;--bg3:#1a1200;
+  --a1:#fb923c;--a2:#fbbf24;--a3:#f59e0b;--a4:#ef4444;
+  --orb1:rgba(251,146,60,0.07);--orb2:rgba(251,191,36,0.05);
+  --hd-grad:linear-gradient(135deg,rgba(251,146,60,0.12) 0%,transparent 70%);
+  --bar-grad:linear-gradient(90deg,#fb923c,#fbbf24); --dim:#3d2200;
+}
+body.theme-ciel {
+  --bg-page:#e8f0fe;--bg:#ffffff;--bg2:#f1f5fd;--bg3:#e4eaf8;
+  --border:rgba(99,102,241,0.1);--border2:rgba(99,102,241,0.18);
+  --text:#1e2a4a;--muted:#5a6a8a;--dim:#9ca9c4;
+  --a1:#6366f1;--a2:#0ea5e9;--a3:#10b981;--a4:#f59e0b;
+  --orb1:rgba(99,102,241,0.08);--orb2:rgba(14,165,233,0.06);
+  --hd-grad:linear-gradient(135deg,rgba(99,102,241,0.1) 0%,transparent 70%);
+  --bar-grad:linear-gradient(90deg,#6366f1,#0ea5e9);
+  --ctrl-bg:rgba(99,102,241,0.04);--ctrl-bd:rgba(99,102,241,0.18);
+}
+body.theme-papier {
+  --bg-page:#f5f0e8;--bg:#fdfaf4;--bg2:#f2ede0;--bg3:#eae4d4;
+  --border:rgba(120,90,40,0.1);--border2:rgba(120,90,40,0.18);
+  --text:#2d2318;--muted:#7a6a52;--dim:#b8a88a;
+  --a1:#c2410c;--a2:#0891b2;--a3:#15803d;--a4:#b45309;
+  --orb1:rgba(194,65,12,0.06);--orb2:rgba(8,145,178,0.05);
+  --hd-grad:linear-gradient(135deg,rgba(194,65,12,0.08) 0%,transparent 70%);
+  --bar-grad:linear-gradient(90deg,#c2410c,#b45309);
+  --ctrl-bg:rgba(120,90,40,0.04);--ctrl-bd:rgba(120,90,40,0.18);
+}
+
+/* ═══════════════════════════════════════
+   BASE
+═══════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg-page);color:var(--text);
+  font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.7;
+  min-height:100vh;padding:28px 20px 60px;
+  display:flex;flex-direction:column;align-items:center;
+  transition:background .3s,color .3s;
+}
+a{color:var(--a1);text-decoration:none}
+b,strong{color:var(--text);font-weight:700}
+
+/* ═══════════════════════════════════════
+   WIZARD
+═══════════════════════════════════════ */
+#wizard{
+  width:560px;max-width:100%;
+  display:flex;flex-direction:column;gap:16px;
+}
+.wiz-header{text-align:center;padding:20px 0 4px}
+.wiz-logo{font-size:40px;margin-bottom:10px}
+.wiz-title{font-size:24px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+.wiz-title span{color:var(--a1)}
+.wiz-sub{font-size:13px;color:var(--muted);max-width:380px;margin:0 auto}
+
+/* Progress steps */
+.wiz-steps{
+  display:flex;align-items:center;justify-content:center;gap:0;padding:4px 0;
+}
+.wiz-step{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:8px}
+.wiz-step-num{
+  width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;flex-shrink:0;
+  background:rgba(255,255,255,.05);border:1px solid var(--border2);color:var(--dim);
+  transition:all .2s;
+}
+.wiz-step.active .wiz-step-num{background:rgba(139,92,246,.2);border-color:var(--a1);color:var(--a1)}
+.wiz-step.done .wiz-step-num{background:rgba(52,211,153,.15);border-color:var(--a3);color:var(--a3)}
+.wiz-step-lbl{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.3px}
+.wiz-step.active .wiz-step-lbl{color:var(--text)}
+.wiz-step.done .wiz-step-lbl{color:var(--a3)}
+.wiz-conn{width:28px;height:1px;background:var(--border2);flex-shrink:0}
+
+/* Card container used for wizard panels and final controls */
+.panel{
+  background:var(--ctrl-bg);border:1px solid var(--ctrl-bd);
+  border-radius:14px;overflow:hidden;
+}
+.panel-hd{
+  display:flex;align-items:center;gap:10px;padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,.02);
+}
+.panel-icon{font-size:16px}
+.panel-title{font-size:13px;font-weight:700;flex:1}
+.panel-desc{font-size:11px;color:var(--muted)}
+.panel-body{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+
+/* Form elements */
+.field{display:flex;flex-direction:column;gap:5px}
+.field-lbl{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--dim)}
+.field-input{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:8px;padding:10px 14px;font-size:13px;color:var(--text);
+  font-family:'Courier New',monospace;outline:none;transition:border-color .15s;
+}
+.field-input:focus{border-color:var(--a1);box-shadow:0 0 0 3px rgba(139,92,246,.1)}
+.field-input.ok{border-color:var(--a3)}
+.field-input.err{border-color:#f87171}
+.field-input::placeholder{color:var(--dim);font-family:'Segoe UI',system-ui,sans-serif}
+.field-row{display:flex;gap:8px;align-items:flex-end}
+.field-row .field{flex:1}
+
+/* Bookmarklet */
+.bm-box{
+  background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(94,234,212,.06));
+  border:1px solid rgba(139,92,246,.25);border-radius:10px;padding:14px 16px;
+}
+.bm-title{font-size:11px;font-weight:700;color:var(--a1);margin-bottom:8px}
+.bm-row{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.bm-link{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(139,92,246,.2);border:2px dashed rgba(139,92,246,.5);
+  border-radius:9px;padding:8px 16px;font-size:13px;font-weight:700;
+  color:var(--a1);cursor:grab;text-decoration:none;user-select:none;
+  transition:all .15s;white-space:nowrap;flex-shrink:0;
+}
+.bm-link:hover{background:rgba(139,92,246,.3);transform:scale(1.02)}
+.bm-hint{font-size:11px;color:var(--muted);line-height:1.7}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  border:none;border-radius:8px;padding:9px 18px;
+  font-size:13px;font-weight:700;cursor:pointer;
+  font-family:inherit;transition:all .15s;
+}
+.btn-primary{background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);color:var(--a1)}
+.btn-primary:hover:not(:disabled){background:rgba(139,92,246,.35);transform:translateY(-1px)}
+.btn-green{background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.35);color:var(--a3)}
+.btn-green:hover:not(:disabled){background:rgba(52,211,153,.25);transform:translateY(-1px)}
+.btn-ghost{background:rgba(255,255,255,.04);border:1px solid var(--border2);color:var(--muted)}
+.btn-ghost:hover:not(:disabled){background:rgba(255,255,255,.08)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+.btn-lg{padding:12px 28px;font-size:14px;border-radius:10px}
+.btn-export{
+  background:var(--bar-grad);border:none;border-radius:7px;padding:8px 18px;
+  font-size:12px;font-weight:800;color:#fff;cursor:pointer;font-family:inherit;
+  transition:all .15s;letter-spacing:.3px;opacity:.9;
+}
+.btn-export:hover:not(:disabled){opacity:1;transform:translateY(-1px)}
+.btn-export:disabled{opacity:.3;cursor:not-allowed;transform:none}
+
+/* Status */
+.status{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11.5px;font-weight:600;padding:5px 12px;border-radius:100px;
+}
+.st-idle{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--dim)}
+.st-load{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);color:var(--a4)}
+.st-ok{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:var(--a3)}
+.st-err{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171}
+
+/* Progress bar */
+.prog{margin-top:4px}
+.prog-info{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px}
+.prog-track{height:5px;background:var(--border2);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;background:var(--bar-grad);transition:width .3s ease}
+
+/* Server / library cards */
+.server-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;padding:12px 16px;cursor:pointer;
+  display:flex;align-items:center;gap:12px;transition:all .15s;
+  margin-bottom:6px;
+}
+.server-card:last-child{margin-bottom:0}
+.server-card:hover{border-color:rgba(139,92,246,.3);background:rgba(139,92,246,.06)}
+.server-card.sel{border-color:rgba(139,92,246,.5);background:rgba(139,92,246,.1)}
+.sc-icon{font-size:20px;flex-shrink:0}
+.sc-info{flex:1}
+.sc-name{font-size:13px;font-weight:600}
+.sc-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.sc-badge{
+  font-size:9px;font-weight:700;padding:3px 10px;border-radius:100px;
+  letter-spacing:.5px;flex-shrink:0;
+}
+
+/* Tip */
+.tip{
+  border-radius:9px;padding:11px 14px;font-size:12px;
+  display:flex;gap:9px;align-items:flex-start;line-height:1.6;
+}
+.tip-i{flex-shrink:0;margin-top:1px}
+.tip-yellow{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);color:#fde68a}
+.tip-violet{background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.2);color:#ddd6fe}
+.tip-blue{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.2);color:#bfdbfe}
+.tip-green{background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);color:#a7f3d0}
+.err-msg{font-size:11px;color:#f87171;margin-top:4px;display:none}
+.err-msg.show{display:block}
+
+/* Spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.1);border-top-color:currentColor;border-radius:50%;animation:spin .7s linear infinite}
+
+/* ═══════════════════════════════════════
+   CONTROL PANEL (post-wizard)
+═══════════════════════════════════════ */
+#controls{
+  width:630px;max-width:100%;margin-bottom:14px;
+  background:var(--ctrl-bg);border:1px solid var(--ctrl-bd);
+  border-radius:14px;overflow:hidden;
+  display:none; /* shown after data loaded */
+}
+.ctrl-topbar{
+  display:flex;align-items:center;gap:8px;padding:9px 14px;
+  border-bottom:1px solid var(--border);flex-wrap:wrap;
+}
+.ctrl-name-input{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:6px;
+  padding:5px 10px;font-size:12px;color:var(--text);outline:none;font-family:inherit;
+  flex:1;min-width:110px;transition:border-color .15s;
+}
+.ctrl-name-input:focus{border-color:var(--a1)}
+.ctrl-sel{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:6px;padding:5px 10px;font-size:11.5px;font-weight:600;
+  color:var(--text);outline:none;cursor:pointer;font-family:inherit;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%237a8499' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;padding-right:22px;
+  transition:border-color .15s;
+}
+.ctrl-sel:focus{border-color:var(--a1)}
+.ctrl-body{padding:10px 14px;display:flex;flex-direction:column;gap:5px}
+.ctrl-section{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.ctrl-section-hd{
+  display:flex;align-items:center;gap:8px;padding:6px 12px;
+  background:rgba(255,255,255,.02);border-bottom:1px solid var(--border);
+}
+.ctrl-section-icon{font-size:13px}
+.ctrl-section-title{font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);flex:1}
+.ctrl-section-body{display:flex;flex-direction:column;gap:5px;padding:8px 12px}
+.ctrl-bloc-row{display:flex;align-items:center;gap:8px}
+.ctrl-bloc-tag{
+  font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:5px;padding:2px 8px;white-space:nowrap;flex-shrink:0;min-width:56px;text-align:center;
+}
+.ctrl-sel-data{flex:1.4;min-width:80px}
+.ctrl-sel-style{flex:1;min-width:70px}
+.ctrl-arrow{color:var(--dim);font-size:10px;flex-shrink:0;opacity:.6}
+.ctrl-divider{height:1px;background:var(--border);margin:2px 0}
+
+/* ═══════════════════════════════════════
+   CARD
+═══════════════════════════════════════ */
+#card{width:630px;background:var(--bg);border-radius:14px;overflow:hidden;position:relative;box-shadow:0 0 60px var(--orb1),0 0 0 1px rgba(255,255,255,0.05);transition:background .3s;display:none}
+#card::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:30px 30px}
+.orb{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:0;transition:background .4s}
+.orb-1{width:350px;height:280px;background:var(--orb1);top:-60px;right:-80px}
+.orb-2{width:280px;height:220px;background:var(--orb2);bottom:120px;left:-40px}
+.stack{position:relative;z-index:1;display:flex;flex-direction:column}
+.hd{padding:20px 22px 16px;background:var(--hd-grad);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;transition:background .3s}
+.hd-icon{width:44px;height:44px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(94,234,212,.2));border:1px solid var(--a1);display:flex;align-items:center;justify-content:center;font-size:21px;opacity:.85}
+.hd-text{flex:1}
+.hd-name{font-size:20px;font-weight:800;letter-spacing:-.5px;color:var(--text);line-height:1.2}
+.hd-name span{color:var(--a1)}
+.hd-sub{font-size:10px;color:var(--dim);margin-top:2px;letter-spacing:.3px;font-weight:600;text-transform:uppercase}
+.hd-badge{background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:100px;padding:4px 12px;font-size:10px;font-weight:700;color:var(--a2);letter-spacing:.5px;white-space:nowrap;align-self:flex-start}
+.hd-stats{display:flex;align-items:center;height:36px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.08)}
+.hds-cell{display:flex;align-items:center;gap:6px;padding:0 14px;height:100%;border-right:1px solid var(--border);flex-shrink:0}
+.hds-cell.hdr{flex:1;border-right:none}
+.hds-v{font-size:13px;font-weight:800;letter-spacing:-.3px;line-height:1;color:var(--a1)}
+.hds-v.teal{color:var(--a2)}.hds-v.amb{color:var(--a4)}
+.hds-l{font-size:8.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);font-weight:700}
+.hdr-mini{display:flex;align-items:center;gap:7px;flex:1}
+.hdr-track{flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden;min-width:30px}
+.hdr-fill{height:100%;border-radius:2px;background:var(--bar-grad)}
+.hdr-pct{font-size:9px;font-weight:700;color:var(--dim);flex-shrink:0}
+.sec{padding:14px 18px;border-bottom:1px solid var(--border)}
+.sec:last-child{border-bottom:none}
+.sec-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.dual{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.col-div{border-right:1px solid var(--border);padding-right:12px}
+.subsec-lbl{font-size:9px;color:var(--dim);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px}
+.bar-row{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.bar-row:last-child{margin-bottom:0}
+.bar-name{font-size:10px;color:var(--muted);width:68px;flex-shrink:0;text-align:right;font-weight:500}
+.bar-track{flex:1;height:12px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.bar-val{font-size:9px;color:var(--dim);width:26px;text-align:right;font-weight:700}
+.vchart{display:flex;align-items:flex-end;gap:5px;height:70px}
+.vcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%}
+.vcol-val{font-size:8px;color:var(--muted);font-weight:700}
+.vcol-sp{flex:1;display:flex;align-items:flex-end;width:100%}
+.vcol-bar{width:100%;border-radius:3px 3px 0 0;min-height:3px}
+.vcol-lbl{font-size:7.5px;color:var(--dim);font-weight:600;white-space:nowrap;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.donut-wrap{display:flex;align-items:center;gap:12px}
+.donut-svg-wrap{position:relative;flex-shrink:0}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-pct{font-size:16px;font-weight:800;color:var(--a1);line-height:1}
+.donut-sub{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+.donut-leg{flex:1}
+.dleg{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.dleg:last-child{margin-bottom:0}
+.dleg-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+.dleg-lbl{font-size:10px;color:var(--muted);flex:1}
+.dleg-pct{font-size:9px;color:var(--dim);width:30px;text-align:right}
+.bubble-wrap{display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
+.bubble{border-radius:6px;padding:4px 9px;font-size:9px;font-weight:700;letter-spacing:.3px;border:1px solid transparent;display:flex;align-items:center;gap:4px}
+.bubble .bv{opacity:.55;font-size:8px}
+.pal3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+.pal-col{padding:0 8px}
+.pal-col:first-child{padding-left:0}
+.pal-col:last-child{padding-right:0}
+.pal-col:not(:last-child){border-right:1px solid var(--border)}
+.pal-head{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;margin-bottom:7px}
+.pal-row{display:flex;align-items:flex-start;gap:5px;padding:4px 0;border-bottom:1px solid var(--border)}
+.pal-row:last-child{border-bottom:none;padding-bottom:0}
+.pal-rank{width:14px;height:14px;border-radius:3px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800}
+.pal-info{flex:1;min-width:0}
+.pal-title{font-size:10px;color:var(--text);opacity:.85;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.pal-meta{font-size:8.5px;color:var(--dim);margin-top:1px;font-weight:600}
+.pal-score{font-size:11px;font-weight:800;flex-shrink:0;line-height:1;margin-top:2px}
+.card-footer{padding:8px 18px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.footer-l{font-size:8.5px;color:var(--dim);letter-spacing:.4px}
+.footer-tags{display:flex;gap:5px}
+.ftag{font-size:7.5px;color:var(--dim);font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+.fsep{color:var(--dim);opacity:.4}
+
+/* Reset link */
+#resetLink{
+  font-size:11px;color:var(--muted);cursor:pointer;margin-top:10px;
+  display:none;text-align:center;text-decoration:underline;text-underline-offset:3px;
+}
+#resetLink:hover{color:var(--text)}
+
+@media(max-width:660px){
+  #wizard,#controls,#card{width:100%}
+  .dual{grid-template-columns:1fr}
+  .pal3{grid-template-columns:1fr}
+  .bm-row{flex-direction:column}
+}
+</style>
+</head>
+<body class="theme-nuit">
+
+<!-- ═══════════════════════════════════════════
+     WIZARD
+═══════════════════════════════════════════ -->
+<div id="wizard">
+
+  <div class="wiz-header">
+    <div class="wiz-logo">📽️</div>
+    <div class="wiz-title">Plex <span>Dashboard</span></div>
+    <div class="wiz-sub">Connectez votre serveur Plex pour générer votre carte de bibliothèque en direct — sans aucun fichier CSV.</div>
+  </div>
+
+  <!-- Étapes -->
+  <div class="wiz-steps">
+    <div class="wiz-step active" id="ws-1">
+      <div class="wiz-step-num">1</div>
+      <div class="wiz-step-lbl">Token</div>
+    </div>
+    <div class="wiz-conn"></div>
+    <div class="wiz-step" id="ws-2">
+      <div class="wiz-step-num">2</div>
+      <div class="wiz-step-lbl">Bibliothèque</div>
+    </div>
+    <div class="wiz-conn"></div>
+    <div class="wiz-step" id="ws-3">
+      <div class="wiz-step-num">3</div>
+      <div class="wiz-step-lbl">Chargement</div>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 1 : TOKEN ── -->
+  <div id="step-1" class="panel">
+    <div class="panel-hd">
+      <span class="panel-icon">🔑</span>
+      <div>
+        <div class="panel-title">Token Plex</div>
+        <div class="panel-desc">Récupération automatique en 10 secondes</div>
+      </div>
+    </div>
+    <div class="panel-body">
+
+      <div class="bm-box">
+        <div class="bm-title">🔖 Méthode automatique — glissez dans vos favoris</div>
+        <div class="bm-row">
+          <a class="bm-link" href="javascript:(function()%7Bvar%20keys%3D%5B'myPlexAccessToken'%2C'plexToken'%2C'X-Plex-Token'%5D%3Bvar%20token%3Dnull%3Bfor(var%20i%3D0%3Bi%3Ckeys.length%3Bi%2B%2B)%7Bvar%20v%3DlocalStorage.getItem(keys%5Bi%5D)%3Bif(v%26%26v.length%3E10)%7Btoken%3Dv%3Bbreak%3B%7D%7Dif(!token)%7Bvar%20all%3DObject.keys(localStorage)%3Bfor(var%20j%3D0%3Bj%3Call.length%3Bj%2B%2B)%7Bvar%20val%3DlocalStorage.getItem(all%5Bj%5D)%3Bif(typeof%20val%3D%3D%3D'string'%26%26val.length%3D%3D20%26%26%2F%5E%5Ba-zA-Z0-9%5D%2B%24%2F.test(val))%7Btoken%3Dval%3Bbreak%3B%7D%7D%7Dif(token)%7Bnavigator.clipboard.writeText(token).then(function()%7Balert('%E2%9C%93%20Token%20copi%C3%A9%20!%5Cn%5CnRevenez%20sur%20Plex%20Dashboard%20et%20collez-le%20dans%20le%20champ.')%7D).catch(function()%7Bprompt('Copiez%20(Ctrl%2BC)%20:',token)%7D)%7Delse%7Balert('Token%20non%20trouv%C3%A9.%20Connectez-vous%20sur%20app.plex.tv%20et%20r%C3%A9essayez.')%7D%7D)();" title="Glissez dans vos favoris">
+            🎬 Extraire token Plex
+          </a>
+          <div class="bm-hint">
+            1. Glissez ce bouton dans vos favoris<br>
+            2. Ouvrez <strong>app.plex.tv</strong> et connectez-vous<br>
+            3. Cliquez sur le favori → token copié<br>
+            4. Collez ci-dessous
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-lbl">Token Plex</label>
+        <div class="field-row">
+          <div class="field" style="flex:1">
+            <input type="password" id="tokenInput" class="field-input"
+                   placeholder="Collez votre token ici…" autocomplete="off">
+          </div>
+          <button class="btn btn-ghost" onclick="toggleToken()" style="flex-shrink:0;margin-bottom:0">👁</button>
+        </div>
+        <div class="err-msg" id="tokenErr"></div>
+      </div>
+
+      <div class="tip tip-violet">
+        <span class="tip-i">ℹ️</span>
+        <span>Votre token n'est jamais transmis ailleurs qu'aux serveurs <strong>plex.tv</strong>. Il reste dans votre onglet et disparaît à la fermeture.</span>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-lg" id="btnConnect" onclick="connectPlex()">
+          🔌 Connexion à Plex
+        </button>
+        <span class="status st-idle" id="connectStatus">En attente</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 2 : BIBLIOTHÈQUE ── -->
+  <div id="step-2" class="panel" style="display:none">
+    <div class="panel-hd">
+      <span class="panel-icon">📚</span>
+      <div>
+        <div class="panel-title">Choisir une bibliothèque</div>
+        <div class="panel-desc" id="serverLabel">Serveur détecté</div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div id="libList"></div>
+      <div class="tip tip-blue">
+        <span class="tip-i">💡</span>
+        <span>Seules les bibliothèques <strong>Films</strong> et <strong>Séries TV</strong> sont supportées.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ÉTAPE 3 : CHARGEMENT ── -->
+  <div id="step-3" class="panel" style="display:none">
+    <div class="panel-hd">
+      <span class="panel-icon">⚡</span>
+      <div>
+        <div class="panel-title">Récupération des données</div>
+        <div class="panel-desc" id="loadDesc">Connexion en cours…</div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="prog">
+        <div class="prog-info">
+          <span id="loadTxt">Initialisation…</span>
+          <span id="loadPct">0%</span>
+        </div>
+        <div class="prog-track"><div class="prog-fill" id="loadFill"></div></div>
+      </div>
+      <div class="status st-load" id="loadStatus" style="margin-top:4px">
+        <span class="spinner"></span> Chargement…
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wizard -->
+
+<span id="resetLink" onclick="resetWizard()">↩ Changer de bibliothèque</span>
+
+<!-- ═══════════════════════════════════════════
+     CONTROLS + CARD (shown after load)
+═══════════════════════════════════════════ -->
+<div id="controls">
+  <div class="ctrl-topbar">
+    <input type="text" class="ctrl-name-input" id="serverName"
+           placeholder="Nom du serveur…" value="" oninput="updateTitle()">
+    <select class="ctrl-sel" id="selTheme" onchange="applyTheme(this.value)">
+      <optgroup label="🌑 Sombres">
+        <option value="theme-nuit">🌑 Nuit</option>
+        <option value="theme-foret">🌿 Forêt</option>
+        <option value="theme-nebula">🌸 Nebula</option>
+        <option value="theme-cendres">🩶 Cendres</option>
+        <option value="theme-braise">🔥 Braise</option>
+      </optgroup>
+      <optgroup label="☀️ Clairs">
+        <option value="theme-ciel">☀️ Ciel</option>
+        <option value="theme-papier">📜 Papier</option>
+      </optgroup>
+    </select>
+    <button class="btn-export" onclick="capture()">📸 Exporter PNG</button>
+  </div>
+
+  <div class="ctrl-body">
+    <div class="ctrl-section">
+      <div class="ctrl-section-hd">
+        <span class="ctrl-section-icon">📊</span>
+        <span class="ctrl-section-title">Section « Contenu »</span>
+        <span style="font-size:9px;color:var(--dim)">2 blocs côte à côte</span>
+      </div>
+      <div class="ctrl-section-body">
+        <div class="ctrl-bloc-row">
+          <span class="ctrl-bloc-tag">Gauche</span>
+          <span class="ctrl-arrow">▸</span>
+          <select class="ctrl-sel ctrl-sel-data" onchange="setBlock('bl-content-l','data',this.value);renderCard()">
+            <option value="genres">Genres</option>
+            <option value="codecs_v">Codec vidéo</option>
+            <option value="codecs_a">Codec audio</option>
+            <option value="periodes">Périodes</option>
+            <option value="notes_dist">Notes</option>
+            <option value="profil">Profil 10bit</option>
+          </select>
+          <select class="ctrl-sel ctrl-sel-style" onchange="setBlock('bl-content-l','style',this.value);renderCard()">
+            <option value="bars_h">Barres →</option>
+            <option value="bars_v">Barres ↑</option>
+            <option value="donut">Camembert</option>
+            <option value="bubbles">Bulles</option>
+          </select>
+        </div>
+        <div class="ctrl-divider"></div>
+        <div class="ctrl-bloc-row">
+          <span class="ctrl-bloc-tag">Droite</span>
+          <span class="ctrl-arrow">▸</span>
+          <select class="ctrl-sel ctrl-sel-data" onchange="setBlock('bl-content-r','data',this.value);renderCard()">
+            <option value="resolutions" selected>Résolutions</option>
+            <option value="genres">Genres</option>
+            <option value="codecs_v">Codec vidéo</option>
+            <option value="codecs_a">Codec audio</option>
+            <option value="profil">Profil 10bit</option>
+            <option value="notes_dist">Notes</option>
+          </select>
+          <select class="ctrl-sel ctrl-sel-style" onchange="setBlock('bl-content-r','style',this.value);renderCard()">
+            <option value="donut" selected>Camembert</option>
+            <option value="bars_h">Barres →</option>
+            <option value="bars_v">Barres ↑</option>
+            <option value="bubbles">Bulles</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-section-hd">
+        <span class="ctrl-section-icon">🎬</span>
+        <span class="ctrl-section-title">Section « Qualité vidéo »</span>
+        <span style="font-size:9px;color:var(--dim)">2 blocs côte à côte</span>
+      </div>
+      <div class="ctrl-section-body">
+        <div class="ctrl-bloc-row">
+          <span class="ctrl-bloc-tag">Gauche</span>
+          <span class="ctrl-arrow">▸</span>
+          <select class="ctrl-sel ctrl-sel-data" onchange="setBlock('bl-qual-l','data',this.value);renderCard()">
+            <option value="codecs_v" selected>Codec vidéo</option>
+            <option value="codecs_a">Codec audio</option>
+            <option value="resolutions">Résolutions</option>
+            <option value="profil">Profil 10bit</option>
+            <option value="genres">Genres</option>
+            <option value="notes_dist">Notes</option>
+          </select>
+          <select class="ctrl-sel ctrl-sel-style" onchange="setBlock('bl-qual-l','style',this.value);renderCard()">
+            <option value="bars_h" selected>Barres →</option>
+            <option value="bars_v">Barres ↑</option>
+            <option value="donut">Camembert</option>
+            <option value="bubbles">Bulles</option>
+          </select>
+        </div>
+        <div class="ctrl-divider"></div>
+        <div class="ctrl-bloc-row">
+          <span class="ctrl-bloc-tag">Droite</span>
+          <span class="ctrl-arrow">▸</span>
+          <select class="ctrl-sel ctrl-sel-data" onchange="setBlock('bl-qual-r','data',this.value);renderCard()">
+            <option value="periodes" selected>Périodes</option>
+            <option value="notes_dist">Notes</option>
+            <option value="codecs_v">Codec vidéo</option>
+            <option value="codecs_a">Codec audio</option>
+            <option value="resolutions">Résolutions</option>
+            <option value="profil">Profil 10bit</option>
+          </select>
+          <select class="ctrl-sel ctrl-sel-style" onchange="setBlock('bl-qual-r','style',this.value);renderCard()">
+            <option value="bars_v" selected>Barres ↑</option>
+            <option value="bars_h">Barres →</option>
+            <option value="donut">Camembert</option>
+            <option value="bubbles">Bulles</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-section-hd">
+        <span class="ctrl-section-icon">🏆</span>
+        <span class="ctrl-section-title">Section « Palmarès »</span>
+        <span style="font-size:9px;color:var(--dim);margin-right:8px">3 colonnes</span>
+        <select class="ctrl-sel" id="selPalItems" onchange="setPalItems(+this.value);renderCard()">
+          <option value="3">3 items</option>
+          <option value="5" selected>5 items</option>
+          <option value="10">10 items</option>
+        </select>
+      </div>
+      <div class="ctrl-section-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span class="ctrl-bloc-tag" style="text-align:center">Colonne 1</span>
+            <select class="ctrl-sel" onchange="setBlock('bl-pal-1','data',this.value);renderCard()">
+              <option value="best_rated">⭐ Mieux notés</option>
+              <option value="worst_rated">💀 Pires notes</option>
+              <option value="heaviest">💾 Plus lourds</option>
+              <option value="lightest">🪶 Plus légers</option>
+              <option value="newest">🆕 Plus récents</option>
+              <option value="oldest">🏛 Plus anciens</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span class="ctrl-bloc-tag" style="text-align:center">Colonne 2</span>
+            <select class="ctrl-sel" onchange="setBlock('bl-pal-2','data',this.value);renderCard()">
+              <option value="heaviest" selected>💾 Plus lourds</option>
+              <option value="best_rated">⭐ Mieux notés</option>
+              <option value="worst_rated">💀 Pires notes</option>
+              <option value="lightest">🪶 Plus légers</option>
+              <option value="newest">🆕 Plus récents</option>
+              <option value="oldest">🏛 Plus anciens</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span class="ctrl-bloc-tag" style="text-align:center">Colonne 3</span>
+            <select class="ctrl-sel" onchange="setBlock('bl-pal-3','data',this.value);renderCard()">
+              <option value="worst_rated" selected>💀 Pires notes</option>
+              <option value="best_rated">⭐ Mieux notés</option>
+              <option value="heaviest">💾 Plus lourds</option>
+              <option value="lightest">🪶 Plus légers</option>
+              <option value="newest">🆕 Plus récents</option>
+              <option value="oldest">🏛 Plus anciens</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="card">
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="stack">
+    <div class="hd">
+      <div class="hd-icon">📽️</div>
+      <div class="hd-text">
+        <div class="hd-name" id="hdName">Mon <span>Serveur Plex</span></div>
+        <div class="hd-sub" id="hdSub">Bibliothèque Films · Mise à jour 2025</div>
+      </div>
+      <div class="hd-badge" id="hdBadge"></div>
+    </div>
+    <div class="hd-stats" id="hdStats"></div>
+    <div class="sec">
+      <div class="sec-title" id="sec-content-title">Contenu </div>
+      <div class="dual">
+        <div class="col-div" id="bl-content-l"></div>
+        <div id="bl-content-r"></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title" id="sec-qual-title">Qualité vidéo </div>
+      <div class="dual">
+        <div class="col-div" id="bl-qual-l"></div>
+        <div id="bl-qual-r"></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Palmarès </div>
+      <div class="pal3">
+        <div class="pal-col" id="bl-pal-1"></div>
+        <div class="pal-col" id="bl-pal-2"></div>
+        <div class="pal-col" id="bl-pal-3"></div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="footer-l">Généré avec Claude AI · Plex Media Server</div>
+      <div class="footer-tags">
+        <span class="ftag">#Plex</span><span class="fsep">·</span>
+        <span class="ftag" id="ft-res">4K</span><span class="fsep">·</span>
+        <span class="ftag" id="ft-codec">HEVC</span><span class="fsep">·</span>
+        <span class="ftag" id="ft-audio">TrueHD</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+// PLEX API CONFIG
+// ══════════════════════════════════════════════════════
+const CLIENT_ID = (() => {
+  let id = localStorage.getItem('plexDashClientId');
+  if (!id) { id = 'PlexDash-' + Math.random().toString(36).substr(2,12); localStorage.setItem('plexDashClientId',id); }
+  return id;
+})();
+
+function plexHeaders(token) {
+  return {
+    'Accept': 'application/json',
+    'X-Plex-Product': 'Plex Dashboard',
+    'X-Plex-Version': '1.0',
+    'X-Plex-Client-Identifier': CLIENT_ID,
+    'X-Plex-Platform': 'Web',
+    ...(token ? {'X-Plex-Token': token} : {})
+  };
+}
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let STATE = {
+  token: '',
+  serverName: '',
+  serverUri: '',    // relay URI for all library calls
+  selectedLib: null,
+  items: [],        // raw Plex items
+  D: null,          // computed stats object
+};
+
+// ══════════════════════════════════════════════════════
+// WIZARD NAVIGATION
+// ══════════════════════════════════════════════════════
+function setWizStep(n) {
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('ws-'+i);
+    el.className = 'wiz-step' + (i<n?' done':i===n?' active':'');
+  });
+}
+
+function showStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('step-'+i).style.display = (i===n) ? 'block' : 'none';
+  });
+  setWizStep(n);
+}
+
+function resetWizard() {
+  STATE = { token:'', serverName:'', serverUri:'', selectedLib:null, items:[], D:null };
+  document.getElementById('wizard').style.display = 'flex';
+  document.getElementById('controls').style.display = 'none';
+  document.getElementById('card').style.display = 'none';
+  document.getElementById('resetLink').style.display = 'none';
+  showStep(1);
+  document.getElementById('tokenInput').value = '';
+  document.getElementById('connectStatus').className = 'status st-idle';
+  document.getElementById('connectStatus').textContent = 'En attente';
+  document.getElementById('tokenErr').classList.remove('show');
+}
+
+// ══════════════════════════════════════════════════════
+// STEP 1 — CONNEXION
+// ══════════════════════════════════════════════════════
+function toggleToken() {
+  const inp = document.getElementById('tokenInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+async function connectPlex() {
+  const token = document.getElementById('tokenInput').value.trim();
+  if (!token || token.length < 10) {
+    showTokenErr('Token invalide ou trop court.');
+    return;
+  }
+
+  const btn = document.getElementById('btnConnect');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Connexion…';
+  setStatus('connectStatus', 'load', '🔄 Connexion à plex.tv…');
+  document.getElementById('tokenErr').classList.remove('show');
+
+  try {
+    // Discover servers via plex.tv (CORS-friendly)
+    const resp = await fetch(
+      'https://plex.tv/api/v2/resources?includeHttps=1&includeRelay=1&includeIPv6=0',
+      { headers: plexHeaders(token) }
+    );
+    if (resp.status === 401) throw new Error('Token invalide ou expiré.');
+    if (!resp.ok) throw new Error('Erreur plex.tv : HTTP ' + resp.status);
+
+    const resources = await resp.json();
+    const servers = resources.filter(r => r.provides && r.provides.includes('server'));
+
+    if (!servers.length) throw new Error('Aucun serveur Plex trouvé pour ce compte.');
+
+    STATE.token = token;
+
+    if (servers.length === 1) {
+      await loadServer(servers[0]);
+    } else {
+      // Multiple servers — show picker
+      setStatus('connectStatus', 'ok', `✓ ${servers.length} serveurs trouvés`);
+      showServerPicker(servers);
+    }
+
+  } catch(err) {
+    showTokenErr(err.message);
+    setStatus('connectStatus', 'err', '✗ Échec');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔌 Connexion à Plex';
+  }
+}
+
+function showServerPicker(servers) {
+  // If multiple servers, show in step-2 as server cards before libraries
+  showStep(2);
+  document.getElementById('serverLabel').textContent = 'Choisissez votre serveur Plex';
+  const list = document.getElementById('libList');
+  list.innerHTML = servers.map((s,i) => `
+    <div class="server-card" onclick="loadServerById(${i})">
+      <div class="sc-icon">🖥</div>
+      <div class="sc-info">
+        <div class="sc-name">${esc(s.name)}</div>
+        <div class="sc-meta">${s.connections?.length || 0} connexion(s) disponible(s)</div>
+      </div>
+    </div>`).join('');
+  window._servers = servers;
+}
+
+async function loadServerById(i) {
+  await loadServer(window._servers[i]);
+}
+
+async function loadServer(server) {
+  // Find best connection: prefer relay, then https, then any
+  const conns = (server.connections || []).sort((a,b) => {
+    if (a.relay && !b.relay) return -1;
+    if (!a.relay && b.relay) return 1;
+    if (a.protocol === 'https' && b.protocol !== 'https') return -1;
+    return 0;
+  });
+
+  if (!conns.length) throw new Error('Aucune adresse de connexion disponible pour ce serveur.');
+
+  STATE.serverName = server.name;
+
+  // Try connections in order
+  let uri = null;
+  for (const c of conns) {
+    const candidate = c.uri;
+    try {
+      const test = await fetch(
+        `${candidate}/library/sections?X-Plex-Token=${STATE.token}`,
+        { headers: plexHeaders(), signal: AbortSignal.timeout(5000) }
+      );
+      if (test.ok) { uri = candidate; break; }
+    } catch { /* try next */ }
+  }
+
+  if (!uri) throw new Error('Impossible de joindre le serveur. Vérifiez que Plex est démarré.');
+
+  STATE.serverUri = uri;
+
+  // Fetch libraries
+  const resp = await fetch(
+    `${uri}/library/sections?X-Plex-Token=${STATE.token}`,
+    { headers: plexHeaders() }
+  );
+  const data = await resp.json();
+  const dirs = (data.MediaContainer?.Directory || [])
+    .filter(l => l.type === 'show' || l.type === 'movie');
+
+  if (!dirs.length) throw new Error('Aucune bibliothèque Films ou Séries TV trouvée.');
+
+  setStatus('connectStatus', 'ok', `✓ ${dirs.length} bibliothèque(s) disponible(s)`);
+  showStep(2);
+  document.getElementById('serverLabel').textContent = server.name;
+  renderLibPicker(dirs);
+}
+
+// ══════════════════════════════════════════════════════
+// STEP 2 — BIBLIOTHÈQUE
+// ══════════════════════════════════════════════════════
+const LIB_ICONS  = { show:'📺', movie:'🎬' };
+const LIB_LABELS = { show:'Séries TV', movie:'Films' };
+const LIB_STYLES = {
+  show: 'background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.3)',
+  movie:'background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.3)',
+};
+
+function renderLibPicker(dirs) {
+  document.getElementById('libList').innerHTML = dirs.map((lib,i) => `
+    <div class="server-card" onclick="startLoad(${i})" id="lib-card-${i}">
+      <div class="sc-icon">${LIB_ICONS[lib.type] || '📁'}</div>
+      <div class="sc-info">
+        <div class="sc-name">${esc(lib.title)}</div>
+        <div class="sc-meta">${lib.count != null ? lib.count + ' éléments' : ''}</div>
+      </div>
+      <span class="sc-badge" style="${LIB_STYLES[lib.type] || ''}">${LIB_LABELS[lib.type] || lib.type}</span>
+    </div>`).join('');
+  window._dirs = dirs;
+}
+
+// ══════════════════════════════════════════════════════
+// STEP 3 — CHARGEMENT
+// ══════════════════════════════════════════════════════
+async function startLoad(i) {
+  const lib = window._dirs[i];
+  STATE.selectedLib = lib;
+  showStep(3);
+  document.getElementById('loadDesc').textContent = `${lib.title} — ${LIB_LABELS[lib.type] || lib.type}`;
+  setLoadProg(0, 'Récupération des données…');
+
+  try {
+    const BATCH = 300;
+    let start = 0, all = [], total = null;
+
+    while (true) {
+      const url = `${STATE.serverUri}/library/sections/${lib.key}/all` +
+        `?X-Plex-Token=${STATE.token}&X-Plex-Container-Start=${start}&X-Plex-Container-Size=${BATCH}`;
+      const resp = await fetch(url, { headers: plexHeaders() });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      const mc = data.MediaContainer;
+      if (total === null) total = mc.totalSize ?? mc.size ?? 0;
+      const items = mc.Metadata || [];
+      all = all.concat(items);
+      const pct = total > 0 ? Math.round(all.length / total * 100) : 50;
+      setLoadProg(pct, `${all.length} / ${total > 0 ? total : '?'} éléments récupérés`);
+      if (items.length < BATCH || all.length >= total) break;
+      start += BATCH;
+    }
+
+    setLoadProg(95, 'Calcul des statistiques…');
+    await sleep(60);
+
+    STATE.items = all;
+    STATE.D = computeStats(all, lib.type);
+
+    setLoadProg(100, '✓ Prêt !');
+    setStatus('loadStatus', 'ok', `✓ ${all.length} éléments chargés`);
+    await sleep(400);
+
+    showDashboard();
+
+  } catch(err) {
+    setStatus('loadStatus', 'err', '✗ Erreur : ' + err.message);
+    setLoadProg(0, '⚠️ ' + err.message);
+  }
+}
+
+function setLoadProg(pct, txt) {
+  document.getElementById('loadTxt').textContent = txt;
+  document.getElementById('loadPct').textContent = pct + '%';
+  document.getElementById('loadFill').style.width = pct + '%';
+}
+
+// ══════════════════════════════════════════════════════
+// STATS COMPUTATION
+// ══════════════════════════════════════════════════════
+function normRes(r) {
+  if (!r) return '';
+  const s = String(r).toLowerCase();
+  if (s==='4k'||s==='2160') return '4K';
+  if (s==='1080') return '1080p';
+  if (s==='720') return '720p';
+  if (s==='480'||s==='576') return 'SD/480p';
+  return r;
+}
+
+function computeStats(items, libType) {
+  let totalGB = 0, rSum = 0, rCnt = 0, b10 = 0;
+  const genres = {}, resMap = {}, codV = {}, codA = {}, periods = {}, profil = {}, notes = {};
+  const pBuckets = { '<1990':0, '1990s':0, '2000s':0, '2010s':0, '2020+':0 };
+  const nBuckets = { '1–2':0, '2–4':0, '4–6':0, '6–8':0, '8–10':0 };
+
+  for (const item of items) {
+    const m = (item.Media&&item.Media[0]) || {};
+    const p = (m.Part&&m.Part[0]) || {};
+
+    if (p.size) totalGB += parseInt(p.size) / Math.pow(1024,3);
+    if (item.audienceRating > 0) { rSum += parseFloat(item.audienceRating); rCnt++; }
+
+    const prof = (m.videoProfile || '').toLowerCase();
+    const is10 = prof.includes('10');
+    if (is10) b10++;
+    profil[is10 ? '10 bit' : '8 bit'] = (profil[is10 ? '10 bit' : '8 bit'] || 0) + 1;
+
+    const res = normRes(m.videoResolution) || 'Autre';
+    resMap[res] = (resMap[res] || 0) + 1;
+
+    const vc = (m.videoCodec || '').toLowerCase();
+    const vcLabel = vc === 'hevc' ? 'HEVC' : vc === 'h264' ? 'H.264' : vc === 'av1' ? 'AV1' : vc ? vc.toUpperCase() : 'Autre';
+    codV[vcLabel] = (codV[vcLabel] || 0) + 1;
+
+    const ac = (m.audioCodec || '').toLowerCase();
+    const acLabel = ac==='dca-ma'?'DTS-MA' : ac==='dca'?'DTS' : ac==='truehd'?'TrueHD' : ac==='eac3'?'EAC3' : ac==='ac3'?'AC3' : ac==='aac'?'AAC' : ac==='mp3'?'MP3' : ac?ac.toUpperCase():'Autre';
+    codA[acLabel] = (codA[acLabel] || 0) + 1;
+
+    const gs = (item.Genre || []).map(g => g.tag);
+    gs.forEach(g => { genres[g] = (genres[g]||0)+1; });
+
+    const y = item.year || 0;
+    if (y < 1990)      pBuckets['<1990']++;
+    else if (y < 2000) pBuckets['1990s']++;
+    else if (y < 2010) pBuckets['2000s']++;
+    else if (y < 2020) pBuckets['2010s']++;
+    else               pBuckets['2020+']++;
+
+    const r = parseFloat(item.audienceRating) || 0;
+    if (r>0 && r<=2)      nBuckets['1–2']++;
+    else if (r<=4)         nBuckets['2–4']++;
+    else if (r<=6)         nBuckets['4–6']++;
+    else if (r<=8)         nBuckets['6–8']++;
+    else if (r>8)          nBuckets['8–10']++;
+  }
+
+  const sort2 = obj => Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+
+  // Top N lists
+  const rated = items.filter(i => i.audienceRating > 0).sort((a,b) => b.audienceRating - a.audienceRating);
+  const bySize = items.filter(i => (i.Media&&i.Media[0]&&i.Media[0].Part&&i.Media[0].Part[0]?.size)).sort((a,b) => {
+    const sa = parseInt(a.Media[0].Part[0].size);
+    const sb = parseInt(b.Media[0].Part[0].size);
+    return sb - sa;
+  });
+  const worstR = [...rated].sort((a,b) => a.audienceRating - b.audienceRating);
+  const byYear = items.filter(i=>i.year).sort((a,b)=>b.year-a.year);
+  const oldestItems = [...byYear].sort((a,b)=>a.year-b.year);
+  const lightest = [...bySize].reverse();
+
+  function toList(arr, n=10) {
+    return arr.slice(0,n).map(i => {
+      const m = (i.Media&&i.Media[0])||{};
+      const p = (m.Part&&m.Part[0])||{};
+      return [
+        i.title,
+        parseFloat(i.audienceRating)||0,
+        i.year||0,
+        p.size ? (parseInt(p.size)/Math.pow(1024,3)) : 0
+      ];
+    });
+  }
+  function toListYear(arr, n=10) {
+    return arr.slice(0,n).map(i => [i.title, i.year||0, parseFloat(i.audienceRating)||0]);
+  }
+
+  // Dominant tags for footer
+  const topRes   = sort2(resMap)[0]?.[0] || '4K';
+  const topCodecV = sort2(codV)[0]?.[0] || 'HEVC';
+  const topCodecA = sort2(codA)[0]?.[0] || 'TrueHD';
+
+  return {
+    total: items.length,
+    totalGB: parseFloat(totalGB.toFixed(1)),
+    avgRating: rCnt > 0 ? parseFloat((rSum/rCnt).toFixed(2)) : 0,
+    count10bit: b10,
+    pct10bit: parseFloat((b10/items.length*100).toFixed(1)),
+    libType,
+
+    genres:      sort2(genres).slice(0,10),
+    resolutions: ['4K','1080p','720p','SD/480p'].map(k=>[k,resMap[k]||0]).filter(([,v])=>v>0),
+    codecs_v:    sort2(codV).slice(0,6),
+    codecs_a:    sort2(codA).slice(0,6),
+    periodes:    Object.entries(pBuckets),
+    profil:      sort2(profil),
+    notes_dist:  Object.entries(nBuckets),
+
+    best_rated:  toList(rated),
+    worst_rated: toList(worstR),
+    heaviest:    bySize.slice(0,10).map(i => {
+      const p = (i.Media&&i.Media[0]&&i.Media[0].Part&&i.Media[0].Part[0])||{};
+      return [i.title, parseFloat((parseInt(p.size)/Math.pow(1024,3)).toFixed(1)), i.year||0];
+    }),
+    lightest:    lightest.slice(0,10).map(i => {
+      const p = (i.Media&&i.Media[0]&&i.Media[0].Part&&i.Media[0].Part[0])||{};
+      return [i.title, parseFloat((parseInt(p.size)/Math.pow(1024,3)).toFixed(2)), i.year||0];
+    }),
+    newest:  toListYear(byYear),
+    oldest:  toListYear(oldestItems),
+
+    topRes, topCodecV, topCodecA,
+  };
+}
+
+// ══════════════════════════════════════════════════════
+// SHOW DASHBOARD
+// ══════════════════════════════════════════════════════
+function showDashboard() {
+  document.getElementById('wizard').style.display = 'none';
+  document.getElementById('controls').style.display = 'block';
+  document.getElementById('card').style.display = 'block';
+  document.getElementById('resetLink').style.display = 'block';
+
+  const name = STATE.serverName || 'Mon Serveur Plex';
+  document.getElementById('serverName').value = name;
+  updateTitle();
+
+  // Update footer tags with real dominant codecs
+  const D = STATE.D;
+  document.getElementById('ft-res').textContent   = D.topRes;
+  document.getElementById('ft-codec').textContent = D.topCodecV;
+  document.getElementById('ft-audio').textContent = D.topCodecA;
+
+  // Sub header
+  const libLabel = LIB_LABELS[D.libType] || D.libType;
+  document.getElementById('hdSub').textContent = `Bibliothèque ${libLabel} · Mise à jour ${new Date().getFullYear()}`;
+
+  renderCard();
+}
+
+// ══════════════════════════════════════════════════════
+// CARD BLOCK STATE
+// ══════════════════════════════════════════════════════
+const BLOCKS = {
+  'bl-content-l': { data:'genres',      style:'bars_h' },
+  'bl-content-r': { data:'resolutions', style:'donut'  },
+  'bl-qual-l':    { data:'codecs_v',    style:'bars_h' },
+  'bl-qual-r':    { data:'periodes',    style:'bars_v' },
+  'bl-pal-1':     { data:'best_rated'  },
+  'bl-pal-2':     { data:'heaviest'    },
+  'bl-pal-3':     { data:'worst_rated' },
+};
+function setBlock(id, key, val) { BLOCKS[id][key] = val; }
+
+let PAL_ITEMS = 5;
+function setPalItems(n) { PAL_ITEMS = n; }
+
+// ══════════════════════════════════════════════════════
+// THEME + PALETTE
+// ══════════════════════════════════════════════════════
+const THEME_PALETTES = {
+  'theme-nuit':   ['#a78bfa','#5eead4','#34d399','#fbbf24','#60a5fa','#f9a8d4','#fb923c','#818cf8'],
+  'theme-foret':  ['#34d399','#a3e635','#5eead4','#fbbf24','#86efac','#d9f99d','#6ee7b7','#bef264'],
+  'theme-nebula': ['#f472b6','#c084fc','#818cf8','#fb923c','#f9a8d4','#e879f9','#a78bfa','#fda4af'],
+  'theme-cendres':['#e2e4ea','#9ca3af','#6b7280','#d1d5db','#f3f4f6','#4b5563','#c4c9d8','#374151'],
+  'theme-braise': ['#fb923c','#fbbf24','#f59e0b','#ef4444','#fcd34d','#fca5a5','#fdba74','#fde68a'],
+  'theme-ciel':   ['#6366f1','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16'],
+  'theme-papier': ['#c2410c','#0891b2','#15803d','#b45309','#7c3aed','#be185d','#0369a1','#92400e'],
+};
+let currentTheme = 'theme-nuit';
+function palette() { return THEME_PALETTES[currentTheme]; }
+function col(i)    { return palette()[i % palette().length]; }
+
+function dataColors(key) {
+  const p = palette();
+  const m = {
+    resolutions: { '4K':p[0],'1080p':p[2],'720p':p[4],'SD/480p':'#374151' },
+    codecs_v:    { 'HEVC':p[3],'H.264':p[2],'AV1':p[5],'Autre':'#374151' },
+    codecs_a:    { 'TrueHD':p[0],'EAC3':p[4],'DTS-MA':p[1],'AC3':p[3],'DTS':p[2],'AAC':p[6],'MP3':'#6b7280' },
+    profil:      { '10 bit':p[0],'8 bit':'#374151' },
+    notes_dist:  { '1–2':'#f87171','2–4':'#fb923c','4–6':'#fbbf24','6–8':'#5eead4','8–10':'#34d399' },
+  };
+  return m[key] || null;
+}
+
+function applyTheme(theme) {
+  document.body.className = theme;
+  currentTheme = theme;
+  renderCard();
+}
+
+const DATA_LABELS = {
+  genres:'Genres', resolutions:'Résolutions', codecs_v:'Codec vidéo',
+  codecs_a:'Codec audio', periodes:'Périodes', profil:'Profil 10bit', notes_dist:'Distribution notes',
+};
+
+// ══════════════════════════════════════════════════════
+// CHART RENDERERS
+// ══════════════════════════════════════════════════════
+function renderBarsH(key, label) {
+  const items = STATE.D[key] || [];
+  if (!items.length) return `<div class="subsec-lbl">${label}</div><div style="font-size:11px;color:var(--dim)">Aucune donnée</div>`;
+  const max = Math.max(...items.map(([,v])=>v));
+  const colors = dataColors(key);
+  return `<div class="subsec-lbl">${label}</div>` +
+    items.map(([k,v],i) => `
+      <div class="bar-row">
+        <div class="bar-name">${k}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${max?v/max*100:0}%;background:${colors?colors[k]||col(i):col(i)};opacity:.85"></div></div>
+        <div class="bar-val">${v}</div>
+      </div>`).join('');
+}
+
+function renderBarsV(key, label) {
+  const items = STATE.D[key] || [];
+  if (!items.length) return `<div class="subsec-lbl">${label}</div>`;
+  const max = Math.max(...items.map(([,v])=>v));
+  const colors = dataColors(key);
+  return `<div class="subsec-lbl">${label}</div><div class="vchart">` +
+    items.map(([k,v],i) => `
+      <div class="vcol">
+        <div class="vcol-val">${v}</div>
+        <div class="vcol-sp"><div class="vcol-bar" style="height:${max?v/max*100:0}%;background:${colors?colors[k]||col(i):col(i)}"></div></div>
+        <div class="vcol-lbl">${k}</div>
+      </div>`).join('') + '</div>';
+}
+
+function renderDonut(key, label) {
+  const items = STATE.D[key] || [];
+  if (!items.length) return `<div class="subsec-lbl">${label}</div>`;
+  const total = items.reduce((s,[,v])=>s+v,0);
+  const colors = dataColors(key);
+  const sz=88, sw=13, r=(sz-sw)/2, circ=2*Math.PI*r;
+  let off=0, paths='';
+  items.forEach(([k,v],i) => {
+    const d = v/total*circ-1.5; if(d<=0) return;
+    const c = colors?colors[k]||col(i):col(i);
+    paths += `<circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="${c}" stroke-width="${sw}" stroke-dasharray="${d} ${circ-d}" stroke-dashoffset="${-off}" transform="rotate(-90 ${sz/2} ${sz/2})"/>`;
+    off += v/total*circ;
+  });
+  const top = items[0];
+  return `<div class="subsec-lbl">${label}</div>
+    <div class="donut-wrap">
+      <div class="donut-svg-wrap">
+        <svg width="${sz}" height="${sz}">${paths}</svg>
+        <div class="donut-center">
+          <div class="donut-pct">${Math.round(top[1]/total*100)}%</div>
+          <div class="donut-sub">${top[0]}</div>
+        </div>
+      </div>
+      <div class="donut-leg">` +
+    items.map(([k,v],i) => {
+      const c = colors?colors[k]||col(i):col(i);
+      return `<div class="dleg"><div class="dleg-dot" style="background:${c}"></div><div class="dleg-lbl">${k}</div><div class="dleg-pct">${(v/total*100).toFixed(0)}%</div></div>`;
+    }).join('') + `</div></div>`;
+}
+
+function renderBubbles(key, label) {
+  const items = STATE.D[key] || [];
+  const colors = dataColors(key);
+  return `<div class="subsec-lbl">${label}</div><div class="bubble-wrap">` +
+    items.map(([k,v],i) => {
+      const c = colors?colors[k]||col(i):col(i);
+      return `<span class="bubble" style="background:${c}18;border-color:${c}40;color:${c}">${k} <span class="bv">${v}</span></span>`;
+    }).join('') + '</div>';
+}
+
+function renderChart(key, style) {
+  const lbl = DATA_LABELS[key] || key;
+  switch(style) {
+    case 'bars_h':  return renderBarsH(key, lbl);
+    case 'bars_v':  return renderBarsV(key, lbl);
+    case 'donut':   return renderDonut(key, lbl);
+    case 'bubbles': return renderBubbles(key, lbl);
+    default:        return renderBarsH(key, lbl);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// PALMARES RENDERER
+// ══════════════════════════════════════════════════════
+const PAL_LABELS = {
+  best_rated:'⭐ Mieux notés', worst_rated:'💀 Pires notes',
+  heaviest:'💾 Plus lourds', lightest:'🪶 Plus légers',
+  newest:'🆕 Plus récents', oldest:'🏛 Plus anciens',
+};
+const PAL_COLORS = {
+  best_rated: { r:'rgba(52,211,153,.12)',rb:'rgba(52,211,153,.25)',rc:'#34d399' },
+  worst_rated:{ r:'rgba(248,113,113,.1)',rb:'rgba(248,113,113,.22)',rc:'#f87171' },
+  heaviest:   { r:'rgba(94,234,212,.1)',rb:'rgba(94,234,212,.22)',rc:'#5eead4' },
+  lightest:   { r:'rgba(96,165,250,.1)',rb:'rgba(96,165,250,.22)',rc:'#60a5fa' },
+  newest:     { r:'rgba(167,139,250,.12)',rb:'rgba(167,139,250,.3)',rc:'#a78bfa' },
+  oldest:     { r:'rgba(251,191,36,.1)',rb:'rgba(251,191,36,.22)',rc:'#fbbf24' },
+};
+
+function palScore(key, item) {
+  if (key==='heaviest'||key==='lightest') return item[1] < 1 ? item[1].toFixed(2)+'G' : item[1].toFixed(1)+'G';
+  if (key==='newest'||key==='oldest')    return String(item[1]);
+  return item[1] > 0 ? item[1].toFixed(1) : '—';
+}
+function palMeta(key, item) {
+  if (key==='best_rated'||key==='worst_rated') return item[2] || '—';
+  if (key==='heaviest'||key==='lightest')       return item[1].toFixed(1)+' Go · '+(item[2]||'—');
+  if (key==='newest'||key==='oldest')           return item[2] > 0 ? '★ '+item[2].toFixed(1) : '—';
+  return item[2] || '—';
+}
+
+function renderPalmares(id) {
+  const key = BLOCKS[id].data;
+  const D = STATE.D;
+  const list = D[key] || [];
+  const c = PAL_COLORS[key] || PAL_COLORS['best_rated'];
+  let h = `<div class="pal-head" style="color:${c.rc}">${PAL_LABELS[key]}</div>`;
+  h += list.slice(0, PAL_ITEMS).map((item, i) => `
+    <div class="pal-row">
+      <div class="pal-rank" style="background:${c.r};border:1px solid ${c.rb};color:${c.rc}">${i+1}</div>
+      <div class="pal-info">
+        <div class="pal-title" title="${esc(item[0])}">${esc(item[0])}</div>
+        <div class="pal-meta">${palMeta(key, item)}</div>
+      </div>
+      <div class="pal-score" style="color:${c.rc}">${palScore(key, item)}</div>
+    </div>`).join('');
+  document.getElementById(id).innerHTML = h;
+}
+
+// ══════════════════════════════════════════════════════
+// HEADER RENDERER
+// ══════════════════════════════════════════════════════
+function renderHeader() {
+  const D = STATE.D;
+  const pct4k = Math.round((D.resolutions.find(([k])=>k==='4K')||[,0])[1] / D.total * 100);
+  document.getElementById('hdBadge').textContent = pct4k + '% 4K · ' + D.pct10bit + '% HDR';
+  const tb = D.totalGB >= 1024 ? (D.totalGB/1024).toFixed(2)+' To' : D.totalGB+' Go';
+  document.getElementById('hdStats').innerHTML = `
+    <div class="hds-cell"><div class="hds-v">${D.total}</div><div class="hds-l">${LIB_LABELS[D.libType]||'Items'}</div></div>
+    <div class="hds-cell"><div class="hds-v teal" style="font-size:12px">${tb}</div><div class="hds-l">Taille</div></div>
+    <div class="hds-cell"><div class="hds-v amb">${D.avgRating.toFixed(1)}</div><div class="hds-l">Note moy.</div></div>
+    <div class="hds-cell hdr">
+      <div class="hdr-mini">
+        <div><div class="hds-v">${D.count10bit}</div><div class="hds-l">HDR/10bit</div></div>
+        <div class="hdr-track"><div class="hdr-fill" style="width:${D.pct10bit}%"></div></div>
+        <div class="hdr-pct">${D.pct10bit}%</div>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// MAIN CARD RENDER
+// ══════════════════════════════════════════════════════
+function renderCard() {
+  if (!STATE.D) return;
+  renderHeader();
+  ['bl-content-l','bl-content-r','bl-qual-l','bl-qual-r'].forEach(id => {
+    const b = BLOCKS[id];
+    document.getElementById(id).innerHTML = renderChart(b.data, b.style);
+  });
+  ['bl-pal-1','bl-pal-2','bl-pal-3'].forEach(id => renderPalmares(id));
+
+  const cl = BLOCKS['bl-content-l'].data, cr = BLOCKS['bl-content-r'].data;
+  document.getElementById('sec-content-title').childNodes[0].textContent =
+    (cl===cr ? DATA_LABELS[cl] : DATA_LABELS[cl]+' · '+DATA_LABELS[cr]) + ' ';
+  const ql = BLOCKS['bl-qual-l'].data, qr = BLOCKS['bl-qual-r'].data;
+  document.getElementById('sec-qual-title').childNodes[0].textContent =
+    (ql===qr ? DATA_LABELS[ql] : DATA_LABELS[ql]+' · '+DATA_LABELS[qr]) + ' ';
+}
+
+// ══════════════════════════════════════════════════════
+// TITLE UPDATE
+// ══════════════════════════════════════════════════════
+function updateTitle() {
+  const name = document.getElementById('serverName').value.trim() || 'Mon Serveur Plex';
+  const words = name.split(' ');
+  const last = words.length > 1 ? words.pop() : '';
+  document.getElementById('hdName').innerHTML =
+    last ? `${words.join(' ')} <span>${last}</span>` : `<span>${name}</span>`;
+}
+
+// ══════════════════════════════════════════════════════
+// CAPTURE
+// ══════════════════════════════════════════════════════
+async function capture() {
+  const btn = document.querySelector('.btn-export');
+  const ctrl = document.getElementById('controls');
+  const reset = document.getElementById('resetLink');
+  btn.textContent = '⏳…'; btn.disabled = true;
+  ctrl.style.visibility = 'hidden';
+  reset.style.visibility = 'hidden';
+  try {
+    const card = document.getElementById('card');
+    const canvas = await html2canvas(card, {
+      scale: 2, useCORS: true,
+      backgroundColor: getComputedStyle(card).backgroundColor,
+      width: card.offsetWidth, height: card.offsetHeight,
+    });
+    const a = document.createElement('a');
+    a.download = 'plex_dashboard.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  } finally {
+    ctrl.style.visibility = 'visible';
+    reset.style.visibility = 'visible';
+    btn.textContent = '📸 Exporter PNG';
+    btn.disabled = false;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+function setStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  const map = {idle:'st-idle',load:'st-load',ok:'st-ok',err:'st-err'};
+  el.className = 'status ' + (map[type]||'st-idle');
+  el.textContent = msg;
+}
+function showTokenErr(msg) {
+  const el = document.getElementById('tokenErr');
+  el.textContent = msg; el.classList.add('show');
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+showStep(1);
+</script>
+</body>
+</html>
