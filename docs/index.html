@@ -1050,32 +1050,49 @@ async function loadServerById(i) {
 }
 
 async function loadServer(server) {
-  // Find best connection: prefer relay, then https, then any
-  const conns = (server.connections || []).sort((a,b) => {
+  STATE.serverName = server.name;
+
+  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+  // Sort: relay first, then https, then anything
+  let conns = (server.connections || []).sort((a, b) => {
     if (a.relay && !b.relay) return -1;
     if (!a.relay && b.relay) return 1;
     if (a.protocol === 'https' && b.protocol !== 'https') return -1;
     return 0;
   });
 
-  if (!conns.length) throw new Error('Aucune adresse de connexion disponible pour ce serveur.');
+  // When hosted remotely, only relay connections are CORS-allowed by Plex
+  // (direct .plex.direct URLs only allow app.plex.tv as origin)
+  if (!isLocal) {
+    conns = conns.filter(c => c.relay);
+    if (!conns.length) throw new Error(
+      'Aucune connexion relay disponible pour ce serveur. ' +
+      'Le serveur doit avoir l\'accès relay Plex activé (Paramètres → Réseau → Accès à distance).'
+    );
+  }
 
-  STATE.serverName = server.name;
+  if (!conns.length) throw new Error('Aucune adresse de connexion disponible pour ce serveur.');
 
   // Try connections in order
   let uri = null;
   for (const c of conns) {
-    const candidate = c.uri;
     try {
       const test = await fetch(
-        `${candidate}/library/sections?X-Plex-Token=${STATE.token}`,
-        { headers: plexHeaders(), signal: AbortSignal.timeout(5000) }
+        `${c.uri}/library/sections?X-Plex-Token=${STATE.token}`,
+        { headers: plexHeaders(), signal: AbortSignal.timeout(8000) }
       );
-      if (test.ok) { uri = candidate; break; }
+      if (test.ok) { uri = c.uri; break; }
     } catch { /* try next */ }
   }
 
-  if (!uri) throw new Error('Impossible de joindre le serveur. Vérifiez que Plex est démarré.');
+  if (!uri) {
+    if (!isLocal) throw new Error(
+      'Impossible de joindre le serveur via le relay Plex. ' +
+      'Vérifiez que l\'accès à distance est activé dans les paramètres Plex du serveur.'
+    );
+    throw new Error('Impossible de joindre le serveur. Vérifiez que Plex est démarré.');
+  }
 
   STATE.serverUri = uri;
 
