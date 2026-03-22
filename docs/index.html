@@ -1015,8 +1015,10 @@ async function discoverServers() {
     if (!resp.ok) throw new Error('Erreur plex.tv : HTTP ' + resp.status);
 
     const resources = await resp.json();
-    const servers = resources.filter(r => r.provides && r.provides.includes('server'));
-    if (!servers.length) throw new Error('Aucun serveur Plex trouvé pour ce compte.');
+    const servers = resources.filter(r =>
+      r.provides && r.provides.includes('server') && r.owned
+    );
+    if (!servers.length) throw new Error('Aucun serveur Plex dont vous êtes propriétaire n\'a été trouvé.');
 
     if (servers.length === 1) {
       await loadServer(servers[0]);
