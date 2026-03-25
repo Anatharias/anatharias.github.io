@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plex Media Server Dashboard</title>
+<style>
+:root{--bg:#1a1a2e;--bg2:#16213e;--card:#1e2a45;--card2:#243050;--border:#2d3a56;--text:#e2e8f0;--text2:#8892a4;--accent:#e5a00d;--teal:#00b4c8;--purple:#a855f7;--green:#22c55e;--red:#ef4444;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;min-height:100vh;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;gap:8px;height:46px;position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:8px;margin-right:12px;}
+.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,#e5a00d,#f59e0b);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.logo-text{font-weight:700;font-size:13px;line-height:1.2;}
+.logo-sub{color:var(--text2);font-size:10px;}
+.nav-tabs-wrapper{display:flex;align-items:center;flex:1;min-width:0;gap:2px;}
+.nav-scroll-btn{background:none;border:none;color:var(--text2);cursor:pointer;padding:2px 5px;border-radius:5px;font-size:15px;line-height:1;flex-shrink:0;transition:color .15s,background .15s;}
+.nav-scroll-btn:hover{color:var(--text);background:var(--card);}
+.nav-scroll-btn:disabled{opacity:.2;cursor:default;}
+.nav-tabs{display:flex;gap:2px;flex:1;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.nav-tab{padding:5px 10px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--text2);transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:4px;border:none;background:none;flex-shrink:0;}
+.nav-tab:hover{background:var(--card);color:var(--text);}
+.nav-tab.active{background:var(--accent);color:#000;font-weight:600;}
+.nav-tab .cnt{font-size:10px;opacity:.75;}
+.capture-btn{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0;}
+.action-btn{border:none;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0;}
+.clear-btn{background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.4);}
+.clear-btn:hover{background:rgba(239,68,68,.35);}
+.import-btn{background:rgba(34,197,94,.2);color:#4ade80;border:1px solid rgba(34,197,94,.4);}
+.import-btn:hover{background:rgba(34,197,94,.35);}
+.export-btn{background:rgba(59,130,246,.2);color:#60a5fa;border:1px solid rgba(59,130,246,.4);}
+.export-btn:hover{background:rgba(59,130,246,.35);}
+.content{padding:14px;max-width:1800px;margin:0 auto;}
+.sec-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.tiles-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:14px;}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:default;}
+.tile-icon{font-size:18px;margin-bottom:3px;}
+.tile-value{font-size:24px;font-weight:700;line-height:1.1;}
+.tile-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+.c-films{color:#e879f9;}.c-series{color:#00b4c8;}.c-docs{color:#e5a00d;}.c-concert{color:#a855f7;}.c-music{color:#f43f5e;}.c-size{color:#22c55e;}.c-rating{color:#e5a00d;}.c-codec{color:#a855f7;}
+.c-teal{color:#00b4c8;}.c-orange{color:#f97316;}.c-green{color:#22c55e;}.c-pink{color:#ec4899;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;overflow:hidden;}
+canvas{max-width:100%;display:block;}
+.card-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:5px;}
+.dur-tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px;}
+.dur-tile{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;}
+.dur-label{font-size:9px;color:var(--text2);text-transform:uppercase;margin-bottom:3px;}
+.dur-value{font-size:18px;font-weight:700;color:var(--teal);}
+.dur-sub{font-size:9px;color:var(--text2);margin-top:2px;}
+.dur-bar{height:2px;background:var(--border);border-radius:1px;margin-top:6px;}
+.dur-fill{height:100%;border-radius:1px;}
+.total-badge{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.total-val{font-size:20px;font-weight:700;color:var(--accent);}
+.hbar-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.hbar-label{width:130px;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
+.hbar-track{flex:1;background:var(--border);border-radius:2px;height:5px;}
+.hbar-fill{height:100%;border-radius:2px;}
+.hbar-val{width:32px;text-align:right;font-size:11px;color:var(--text2);flex-shrink:0;}
+.rank-row{display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--border);}
+.rank-row:last-child{border-bottom:none;}
+.rank-num{width:16px;font-size:10px;color:var(--text2);flex-shrink:0;}
+.rank-title{flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rank-year{font-size:10px;color:var(--text2);flex-shrink:0;}
+.rank-val{font-size:11px;font-weight:700;flex-shrink:0;width:48px;text-align:right;}
+.rank-val.best{color:var(--green);}.rank-val.worst{color:var(--red);}.rank-val.heavy{color:var(--teal);}
+.filter-bar{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center;}
+.search-box{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-size:12px;width:200px;}
+.search-box::placeholder{color:var(--text2);}
+.sel-filter{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:4px 7px;color:var(--text);font-size:12px;cursor:pointer;}
+.reset-btn{margin-left:auto;background:none;border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:4px 9px;cursor:pointer;font-size:11px;}
+.reset-btn:hover{color:var(--text);}
+table{width:100%;border-collapse:collapse;}
+thead th{color:var(--text2);font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:5px 7px;text-align:left;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;}
+thead th:hover{color:var(--text);}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.03);}
+tbody tr:hover{background:rgba(255,255,255,.025);}
+tbody td{padding:5px 7px;font-size:12px;}
+.td-title{font-weight:500;}.td-sub{font-size:10px;color:var(--text2);}.td-year{color:var(--text2);}
+.badge{display:inline-block;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:600;}
+.b4k{background:rgba(59,130,246,.25);color:#60a5fa;border:1px solid rgba(59,130,246,.4);}
+.b1080{background:rgba(34,197,94,.2);color:#4ade80;border:1px solid rgba(34,197,94,.35);}
+.b720{background:rgba(234,179,8,.2);color:#facc15;border:1px solid rgba(234,179,8,.3);}
+.bsd{background:rgba(156,163,175,.2);color:#9ca3af;border:1px solid rgba(156,163,175,.3);}
+.b480{background:rgba(156,163,175,.2);color:#9ca3af;border:1px solid rgba(156,163,175,.3);}
+.b2k{background:rgba(139,92,246,.25);color:#c084fc;border:1px solid rgba(139,92,246,.4);}
+.bhevc{background:rgba(245,158,11,.2);color:#fbbf24;border:1px solid rgba(245,158,11,.3);}
+.bh264{background:rgba(16,185,129,.2);color:#34d399;border:1px solid rgba(16,185,129,.3);}
+.bmpeg4{background:rgba(156,163,175,.2);color:#9ca3af;border:1px solid rgba(156,163,175,.3);}
+.bother{background:rgba(156,163,175,.15);color:#9ca3af;border:1px solid rgba(156,163,175,.25);}
+.b10bit{background:rgba(139,92,246,.2);color:#c084fc;border:1px solid rgba(139,92,246,.3);}
+.bflac{background:rgba(34,197,94,.2);color:#4ade80;border:1px solid rgba(34,197,94,.3);}
+.bmp3{background:rgba(234,179,8,.2);color:#facc15;border:1px solid rgba(234,179,8,.3);}
+.beac3{background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.3);}
+.baac{background:rgba(156,163,175,.2);color:#9ca3af;border:1px solid rgba(156,163,175,.3);}
+.btruehd{background:rgba(236,72,153,.2);color:#f472b6;border:1px solid rgba(236,72,153,.3);}
+.bdcama{background:rgba(59,130,246,.2);color:#60a5fa;border:1px solid rgba(59,130,246,.3);}
+.bdca{background:rgba(59,130,246,.15);color:#93c5fd;border:1px solid rgba(59,130,246,.25);}
+.bac3{background:rgba(249,115,22,.2);color:#fb923c;border:1px solid rgba(249,115,22,.3);}
+.bwma{background:rgba(156,163,175,.2);color:#9ca3af;border:1px solid rgba(156,163,175,.3);}
+.rating-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;}
+.tab-content{display:none;}.tab-content.active{display:block;}
+.paginat{display:flex;align-items:center;gap:8px;padding:8px 0;justify-content:flex-end;}
+.paginat-btn{background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:5px;padding:3px 9px;cursor:pointer;font-size:11px;}
+.paginat-btn:hover{color:var(--text);}
+.paginat-info{font-size:11px;color:var(--text2);}
+.sbar{display:inline-block;height:5px;background:var(--teal);border-radius:2px;vertical-align:middle;margin-left:5px;opacity:.6;}
+@media(max-width:900px){.row2,.row3{grid-template-columns:1fr 1fr;}.dur-tiles{grid-template-columns:1fr 1fr;}.tiles-row{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}.tile-value{font-size:20px;}}
+@media(max-width:700px){.row3{grid-template-columns:1fr 1fr;}.tiles-row{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}.tile-value{font-size:18px;}.dur-tiles{grid-template-columns:1fr 1fr 1fr;}}
+@media(max-width:600px){.tiles-row{grid-template-columns:1fr 1fr;}.row2,.row3,.dur-tiles{grid-template-columns:1fr;}.tile-value{font-size:16px;}.topbar{flex-wrap:wrap;height:auto;padding:6px 10px;gap:4px;}.nav-tabs{order:3;width:100%;}}
+@media(max-width:480px){.tiles-row{grid-template-columns:1fr 1fr;}.tile{padding:8px;}.tile-value{font-size:14px;}.content{padding:8px;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">🎬</div>
+    <div>
+      <div class="logo-text">Plex Media Server</div>
+      <div class="logo-sub" id="logo-sub">11 093 entrées · 13.7 TB · Mar 2026</div>
+    </div>
+  </div>
+  <div class="nav-tabs-wrapper">
+    <button class="nav-scroll-btn" id="nav-scroll-left" onclick="scrollNavTabs(-1)" title="Défiler à gauche">&#8249;</button>
+    <div class="nav-tabs" id="nav-tabs-container">
+      <button class="nav-tab active" onclick="showTab('dashboard',this)">&#128202; Dashboard</button>
+      <button class="nav-tab" onclick="showTab('films',this)" style="display: none;">&#127916; Films <span class="cnt">0</span></button>
+      <button class="nav-tab" onclick="showTab('series',this)" style="display: none;">&#128250; S&#233;ries <span class="cnt">0</span></button>
+      <button class="nav-tab" onclick="showTab('docs',this)" style="display: none;">&#128193; Docs <span class="cnt">0</span></button>
+      <button class="nav-tab" onclick="showTab('autres',this)" style="display: none;">&#128194; Autres Docs <span class="cnt">0</span></button>
+      <button class="nav-tab" onclick="showTab('concerts',this)" style="display: none;">&#127925; Concerts <span class="cnt">0</span></button>
+      <button class="nav-tab" onclick="showTab('musique',this)" style="display: none;">&#127928; Musique <span class="cnt">0</span></button>
+    </div>
+    <button class="nav-scroll-btn" id="nav-scroll-right" onclick="scrollNavTabs(1)" title="D&#233;filer &#224; droite">&#8250;</button>
+  </div>
+  <button class="action-btn clear-btn" onclick="clearData()">🗑 Clear</button>
+  <button class="action-btn import-btn" onclick="document.getElementById('csv-import-input').click()">📂 Import</button>
+  <input type="file" id="csv-import-input" accept=".csv" style="display:none" onchange="importCSV(this)">
+  <button class="action-btn export-btn" onclick="exportCSV()">💾 Export</button>
+  <button class="capture-btn" onclick="captureCards()">📸 Capturer PNG</button>
+</div>
+<div class="content">
+<!-- ======== DASHBOARD ======== -->
+<div id="tab-dashboard" class="tab-content active">
+<div class="sec-title">Vue d'ensemble</div>
+<div class="tiles-row">
+  <div class="tile" onclick="showTab('films',document.querySelector('.nav-tab[onclick*=\'films\']'))">
+    <div class="tile-icon">🎬</div><div class="tile-value c-films" id="tile-films">—</div><div class="tile-label">Films</div>
+  </div>
+  <div class="tile" onclick="showTab('series',document.querySelector('.nav-tab[onclick*=\'series\']'))">
+    <div class="tile-icon">📺</div><div class="tile-value c-series" id="tile-series">—</div><div class="tile-label">Séries TV</div>
+  </div>
+  <div class="tile">
+    <div class="tile-icon">📺</div><div class="tile-value c-series" id="tile-episodes" style="font-size:18px">—</div><div class="tile-label">Épisodes</div>
+  </div>
+  <div class="tile" onclick="showTab('musique',document.querySelector('.nav-tab[onclick*=\'musique\']'))">
+    <div class="tile-icon">🎸</div><div class="tile-value c-music" id="tile-music">—</div><div class="tile-label">Pistes Musique</div>
+  </div>
+  <div class="tile">
+    <div class="tile-icon">📦</div><div class="tile-value c-size" id="tile-storage">—</div><div class="tile-label">Stockage vidéo</div>
+  </div>
+  <div class="tile">
+    <div class="tile-icon">⭐</div><div class="tile-value c-rating" id="tile-rating">—</div><div class="tile-label">Note films moy.</div>
+  </div>
+  <div class="tile">
+    <div class="tile-icon">🎯</div><div class="tile-value c-rating" id="tile-4k">—</div><div class="tile-label">Films en 4K</div>
+  </div>
+  <div class="tile">
+    <div class="tile-icon">🔮</div><div class="tile-value c-series" id="tile-10bit">—</div><div class="tile-label">Films 10 bit</div>
+  </div>
+  <div class="tile">
+    <div class="tile-icon">🎼</div><div class="tile-value c-music" id="tile-flac">—</div><div class="tile-label">Musique FLAC</div>
+  </div>
+  <div class="tile">
+    <div class="tile-icon">💽</div><div class="tile-value c-codec" id="tile-codec">—</div><div class="tile-label">Codec dominant</div>
+  </div>
+  <div class="tile">
+    <div class="tile-icon">📅</div><div class="tile-value c-teal" id="tile-medianyear">—</div><div class="tile-label">Année médiane</div>
+  </div>
+  <div class="tile">
+    <div class="tile-icon">⏱</div><div class="tile-value c-orange" id="tile-avgdur">—</div><div class="tile-label">Durée moy. film</div>
+  </div>
+  <div class="tile">
+    <div class="tile-icon">📁</div><div class="tile-value c-green" id="tile-avgsize">—</div><div class="tile-label">Taille moy. fichier</div>
+  </div>
+  <div class="tile">
+    <div class="tile-icon">🆕</div><div class="tile-value c-pink" id="tile-lastadded" style="font-size:16px">—</div><div class="tile-label">Dernier ajout</div>
+  </div>
+</div>
+
+<div class="sec-title">Temps de visionnage &amp; d'écoute</div>
+<div class="dur-tiles" id="dur-tiles-container" style="grid-template-columns: repeat(5, 1fr);"></div>
+<div class="total-badge">
+  <span style="font-size:16px">🌐</span>
+  <div>
+    <div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em" id="total-badge-label">Durée totale cumulée · aucune donnée importée</div>
+    <div style="display:flex;align-items:baseline;gap:12px;margin-top:2px;flex-wrap:wrap">
+      <span class="total-val" id="total-val-display">—</span>
+      <span style="font-size:11px;color:var(--text2)" id="total-hours-display"></span>
+      <span style="font-size:11px;color:var(--accent);font-weight:600" id="total-3h-display"></span>
+    </div>
+  </div>
+</div>
+
+<div class="sec-title">Genres &amp; Réalisateurs</div>
+<div class="row2">
+  <div class="card">
+    <div class="card-title">🎭 Top 12 genres (Films)</div>
+    <div id="genres-bars"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🎬 Top 10 réalisateurs</div>
+    <div id="directors-bars"></div>
+  </div>
+</div>
+
+<div class="sec-title">Qualité vidéo &amp; audio</div>
+<div class="row3" style="margin-bottom:10px">
+  <div class="card">
+    <div class="card-title">🖥 Résolutions</div>
+    <div style="position:relative;">
+      <canvas id="chart-res" style="max-height: 200px; box-sizing: border-box;" width="300"></canvas>
+      <div id="tooltip-res" style="display:none;position:fixed;background:rgba(22,33,62,.97);border:1px solid #2d3a56;border-radius:6px;padding:6px 10px;font-size:12px;color:#e2e8f0;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.4);"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">💽 Codecs vidéo</div>
+    <div style="position:relative;">
+      <canvas id="chart-codec" style="max-height: 200px; box-sizing: border-box;" width="300"></canvas>
+      <div id="tooltip-codec" style="display:none;position:fixed;background:rgba(22,33,62,.97);border:1px solid #2d3a56;border-radius:6px;padding:6px 10px;font-size:12px;color:#e2e8f0;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.4);"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔊 Codecs audio (films)</div>
+    <div style="position:relative;">
+      <canvas id="chart-audio" style="max-height: 200px; box-sizing: border-box;" width="300"></canvas>
+      <div id="tooltip-audio" style="display:none;position:fixed;background:rgba(22,33,62,.97);border:1px solid #2d3a56;border-radius:6px;padding:6px 10px;font-size:12px;color:#e2e8f0;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.4);"></div>
+    </div>
+  </div>
+</div>
+
+<div class="row2" id="section-years-ratings">
+  <div class="card">
+    <div class="card-title">📅 Films par année</div>
+    <div style="position:relative;">
+      <canvas id="chart-years" style="box-sizing: border-box;" width="300"></canvas>
+      <div id="tooltip-years" style="display:none;position:fixed;background:rgba(22,33,62,.97);border:1px solid #2d3a56;border-radius:6px;padding:6px 10px;font-size:12px;color:#e2e8f0;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.4);"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">⭐ Notes films</div>
+    <div style="position:relative;">
+      <canvas id="chart-ratings" style="max-height: 200px; box-sizing: border-box;" width="300"></canvas>
+      <div id="tooltip-ratings" style="display:none;position:fixed;background:rgba(22,33,62,.97);border:1px solid #2d3a56;border-radius:6px;padding:6px 10px;font-size:12px;color:#e2e8f0;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.4);"></div>
+    </div>
+  </div>
+</div>
+
+<div class="sec-title" id="section-title-classements-films">Classements Films</div>
+<div class="row3" id="section-classements-films">
+  <div class="card"><div class="card-title">🏆 Top 10 films notés</div><div id="top10-best"></div></div>
+  <div class="card"><div class="card-title">😬 10 films moins notés</div><div id="top10-worst"></div></div>
+  <div class="card"><div class="card-title">💾 Top 10 films les plus lourds</div><div id="top10-heavy"></div></div>
+</div>
+
+<div class="sec-title" id="section-title-classements-series">Classements Séries</div>
+<div class="row3" id="section-classements-series">
+  <div class="card"><div class="card-title">🏆 Top 10 séries notées</div><div id="top10-series-best"></div></div>
+  <div class="card"><div class="card-title">😬 10 séries moins notées</div><div id="top10-series-worst"></div></div>
+  <div class="card"><div class="card-title">💾 Top 10 séries les plus lourdes</div><div id="top10-series-heavy"></div></div>
+</div>
+</div>
+
+<!-- ======== FILMS ======== -->
+<div id="tab-films" class="tab-content">
+<div style="margin-bottom:8px;font-size:12px;color:var(--text2)">⏱ Temps de visionnage : <span style="color:#00b4c8;font-weight:700">48j 22h</span> &nbsp;|&nbsp; 70460 min · 1174h · 616 films</div>
+<div class="filter-bar">
+  <input class="search-box" type="text" placeholder="🔍 Titre, réalisateur..." id="films-search" oninput="filterFilms()">
+  <select class="sel-filter" id="films-res" onchange="filterFilms()">
+    <option value="" selected="selected">Résolution</option>
+    <option>4K</option><option>1080p</option><option>720p</option><option>sd</option><option>480p</option><option>576p</option>
+  </select>
+  <select class="sel-filter" id="films-codec" onchange="filterFilms()">
+    <option value="" selected="selected">Codec vidéo</option>
+    <option value="hevc">HEVC</option><option value="h264">H264</option><option value="mpeg4">MPEG4</option>
+  </select>
+  <select class="sel-filter" id="films-profile" onchange="filterFilms()">
+    <option value="" selected="selected">Profil</option><option value="1">10bit</option><option value="0">8bit</option>
+  </select>
+  <select class="sel-filter" id="films-genre" onchange="filterFilms()"><option value="" selected="selected">Genre</option></select>
+  <select class="sel-filter" id="films-audio" onchange="filterFilms()">
+    <option value="" selected="selected">Audio</option>
+    <option value="flac">FLAC</option><option value="truehd">TrueHD</option><option value="dca-ma">DCA-MA</option>
+    <option value="eac3">EAC3</option><option value="ac3">AC3</option><option value="mp3">MP3</option><option value="aac">AAC</option>
+  </select>
+  <select class="sel-filter" id="films-sort" onchange="filterFilms()">
+    <option value="title" selected="selected">Titre A→Z</option>
+    <option value="year-d">Année ↓</option><option value="year-a">Année ↑</option>
+    <option value="rat-d">Note ↓</option><option value="rat-a">Note ↑</option>
+    <option value="size-d">Taille ↓</option><option value="dur-d">Durée ↓</option>
+  </select>
+  <button class="reset-btn" onclick="resetFilms()">✕ Reset</button>
+</div>
+<div style="overflow-x:auto">
+<table>
+  <thead><tr>
+    <th onclick="setSortF('title')">TITRE</th>
+    <th onclick="setSortF('year-d')">ANNÉE</th>
+    <th onclick="setSortF('rat-d')">NOTE</th>
+    <th onclick="setSortF('size-d')">POIDS</th>
+    <th>RÉSOLUTION</th><th>CODEC</th><th>PROFIL</th>
+    <th onclick="setSortF('dur-d')">DURÉE</th>
+    <th>GENRE</th><th>AUDIO</th><th>BITRATE</th><th>RÉALISATEUR</th>
+  </tr></thead>
+  <tbody id="films-tbody"></tbody>
+</table>
+</div>
+</div>
+
+<!-- ======== SERIES ======== -->
+<div id="tab-series" class="tab-content">
+<div style="margin-bottom:8px;font-size:12px;color:var(--text2)">⏱ Temps de visionnage : <span style="color:#00b4c8;font-weight:700">178j 2h</span> &nbsp;|&nbsp; 256492 min · 6461 épisodes · 139 séries</div>
+<div class="filter-bar">
+  <input class="search-box" type="text" placeholder="🔍 Titre..." id="series-search" oninput="filterSeries()">
+  <select class="sel-filter" id="series-genre" onchange="filterSeries()"><option value="" selected="selected">Genre</option></select>
+  <select class="sel-filter" id="series-sort" onchange="filterSeries()">
+    <option value="title">Titre A→Z</option>
+    <option value="year-d">Année ↓</option><option value="rat-d">Note ↓</option>
+    <option value="ep-d">Épisodes ↓</option>
+    <option value="size-d">Poids ↓</option>
+    <option value="dur-d">Durée ↓</option>
+  </select>
+  <button class="reset-btn" onclick="resetSeries()">✕ Reset</button>
+</div>
+<div style="overflow-x:auto">
+<table>
+  <thead><tr>
+    <th onclick="setSortS('title')">TITRE</th>
+    <th onclick="setSortS('year-d')">ANNÉE</th>
+    <th onclick="setSortS('rat-d')">NOTE</th>
+    <th>POIDS</th><th>RÉSOLUTION</th><th>CODEC</th><th>PROFIL</th>
+    <th onclick="setSortS('seas-d')">SAISONS</th>
+    <th onclick="setSortS('ep-d')">ÉPISODES</th>
+    <th onclick="setSortS('dur-d')">DURÉE TOTALE</th>
+    <th>GENRE</th><th>BIBLIOTHÈQUE</th>
+  </tr></thead>
+  <tbody id="series-tbody"></tbody>
+</table>
+</div>
+</div>
+
+<!-- ======== DOCS ======== -->
+<div id="tab-docs" class="tab-content">
+<div style="margin-bottom:8px;font-size:12px;color:var(--text2)">
+  ⏱ Temps de visionnage : <span style="color:#e5a00d;font-weight:700">12h 5m</span> &nbsp;|&nbsp; 725 min · 9 Docs
+</div>
+<div class="filter-bar">
+  <input class="search-box" type="text" placeholder="🔍 Titre..." id="docs-search" oninput="filterDocs()">
+  <select class="sel-filter" id="docs-sort" onchange="filterDocs()">
+    <option value="title" selected="selected">Titre A→Z</option><option value="year-d">Année ↓</option><option value="rat-d">Note ↓</option>
+  </select>
+  <button class="reset-btn" onclick="resetDocs()">✕ Reset</button>
+</div>
+<div style="overflow-x:auto">
+<table>
+  <thead><tr>
+    <th>TITRE</th><th>ANNÉE</th><th>NOTE</th><th>DURÉE</th><th>GENRE</th><th>SAISONS</th><th>ÉPISODES</th>
+  </tr></thead>
+  <tbody id="docs-tbody"></tbody>
+</table>
+</div>
+</div>
+
+<!-- ======== AUTRES DOCS ======== -->
+<div id="tab-autres" class="tab-content">
+<div style="margin-bottom:8px;font-size:12px;color:var(--text2)">
+  ⏱ Temps de visionnage : <span style="color:#e5a00d;font-weight:700">1j 8h</span> &nbsp;|&nbsp; 1 960 min · 31 Autres Docs
+</div>
+<div class="filter-bar">
+  <input class="search-box" type="text" placeholder="🔍 Titre..." id="autres-search" oninput="filterAutres()">
+  <select class="sel-filter" id="autres-res" onchange="filterAutres()">
+    <option value="" selected="selected">Résolution</option><option>1080p</option><option>720p</option><option>sd</option>
+  </select>
+  <select class="sel-filter" id="autres-codec" onchange="filterAutres()">
+    <option value="" selected="selected">Codec</option><option value="h264">H264</option><option value="hevc">HEVC</option>
+  </select>
+  <select class="sel-filter" id="autres-sort" onchange="filterAutres()">
+    <option value="title">Titre A→Z</option>
+    <option value="size-d" selected="selected">Taille ↓</option><option value="dur-d">Durée ↓</option>
+  </select>
+  <button class="reset-btn" onclick="resetAutres()">✕ Reset</button>
+</div>
+<div style="overflow-x:auto">
+<table>
+  <thead><tr>
+    <th>TITRE</th><th>ANNÉE</th><th>POIDS</th><th>RÉSOLUTION</th><th>CODEC</th><th>DURÉE</th><th>AUDIO</th><th>BITRATE</th>
+  </tr></thead>
+  <tbody id="autres-tbody"></tbody>
+</table>
+</div>
+</div>
+
+<!-- ======== CONCERTS ======== -->
+<div id="tab-concerts" class="tab-content">
+<div style="margin-bottom:8px;font-size:12px;color:var(--text2)">
+  ⏱ Temps de visionnage : <span style="color:#a855f7;font-weight:700">1h 45m</span> &nbsp;|&nbsp; 105 min · 3 Concert
+</div>
+<div style="overflow-x:auto">
+<table>
+  <thead><tr>
+    <th>TITRE</th><th>ANNÉE</th><th>POIDS</th><th>RÉSOLUTION</th><th>CODEC</th><th>DURÉE</th><th>AUDIO</th><th>BITRATE</th>
+  </tr></thead>
+  <tbody id="concerts-tbody"></tbody>
+</table>
+</div>
+</div>
+
+<!-- ======== MUSIQUE ======== -->
+<div id="tab-musique" class="tab-content">
+<div style="margin-bottom:8px;font-size:12px;color:var(--text2)">⏱ Temps d'écoute : <span style="color:#f43f5e;font-weight:700">94% FLAC</span> &nbsp;·&nbsp; 10 295 pistes · 450 albums · 204 artistes · 916 kbps moy.</div>
+<div class="row2" style="margin-bottom:10px">
+  <div class="card">
+    <div class="card-title">💽 Codecs audio</div>
+    <div style="position:relative;">
+      <canvas id="chart-music-codec" style="max-height: 200px; box-sizing: border-box;" width="300"></canvas>
+      <div id="tooltip-music-codec" style="display:none;position:fixed;background:rgba(22,33,62,.97);border:1px solid #2d3a56;border-radius:6px;padding:6px 10px;font-size:12px;color:#e2e8f0;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.4);"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🎸 Genres musicaux</div>
+    <div id="music-genres-bars"></div>
+  </div>
+</div>
+<div class="filter-bar">
+  <input class="search-box" type="text" placeholder="🔍 Titre, artiste, album..." id="music-search" oninput="filterMusic()">
+  <select class="sel-filter" id="music-artist" onchange="filterMusic()" style="width:180px"><option value="" selected="selected">Tous artistes</option></select>
+  <select class="sel-filter" id="music-codec-f" onchange="filterMusic()">
+    <option value="" selected="selected">Tous codecs</option>
+    <option value="flac">FLAC</option><option value="mp3">MP3</option><option value="eac3">EAC3</option><option value="aac">AAC</option>
+  </select>
+  <select class="sel-filter" id="music-sort" onchange="filterMusic()">
+    <option value="title" selected="selected">Titre A→Z</option>
+    <option value="artist">Artiste A→Z</option>
+    <option value="bitrate-d">Bitrate ↓</option>
+  </select>
+  <button class="reset-btn" onclick="resetMusic()">✕ Reset</button>
+</div>
+<div style="overflow-x:auto">
+<table>
+  <thead><tr>
+    <th onclick="setSortM('title')">TITRE</th>
+    <th onclick="setSortM('artist')">ARTISTE</th>
+    <th>ALBUM</th><th>PISTE</th><th>DURÉE</th><th>GENRE</th><th>CODEC</th>
+    <th onclick="setSortM('bitrate-d')">BITRATE</th>
+    <th>TAILLE</th>
+  </tr></thead>
+  <tbody id="music-tbody"></tbody>
+</table>
+</div>
+</div>
+
+</div><!-- /content -->
+<script>
+// ================================================================
+//  PLEX DASHBOARD — Script autonome, zéro dépendance réseau
+//  Graphiques dessinés sur <canvas> en Canvas 2D pur
+// ================================================================
+
+// ===== PALETTE =====
+const COLORS = ['#00b4c8','#e5a00d','#a855f7','#22c55e','#ef4444','#ec4899','#3b82f6','#f97316','#8b5cf6','#10b981','#f59e0b','#06b6d4','#84cc16','#f43f5e'];
+
+// ===== DONNÉES GLOBALES =====
+let FILMS=[], SERIES=[], DOCS=[], AUTRES=[], CONCERT=[], MUSIC=[];
+let STATS={
+  film_genres:{}, top_directors:[], res_counts:{}, vc_counts:{}, ac_counts:{},
+  films_by_year:{}, rat_dist:{},
+  top10_films_best:[], top10_films_worst:[], top10_films_heavy:[],
+  top10_series_best:[], top10_series_worst:[], top10_series_heavy:[],
+  mc_counts:{}, music_genres:{}
+};
+let fFiltered=[], sFiltered=[], aFiltered=[], mFiltered=[];
+
+// ===== MOTEUR GRAPHIQUE CANVAS PUR =====
+// Registre des graphiques en cours pour pouvoir les effacer
+const _charts = {};
+
+function _clearChart(id) {
+  if (_charts[id]) {
+    try { cancelAnimationFrame(_charts[id]._raf); } catch(e){}
+    delete _charts[id];
+  }
+  // Nettoyer le canvas si existant
+  const el = document.getElementById(id);
+  if (el && el.tagName === 'CANVAS') {
+    el.onmousemove = null;
+    el.onmouseleave = null;
+    el.onclick = null;
+    el.style.cursor = '';
+    const ctx = el.getContext('2d');
+    ctx.clearRect(0, 0, el.width, el.height);
+  }
+  // Nettoyer les divs HTML associés
+  const htmlMap = { 'chart-directors': 'directors-bars', 'chart-music-genres': 'music-genres-bars' };
+  if (htmlMap[id]) { const db = document.getElementById(htmlMap[id]); if (db) db.innerHTML = ''; }
+}
+
+function _clearAllCharts() {
+  Object.keys(_charts).forEach(id => _clearChart(id));
+}
+
+// Utilitaires canvas
+function _setupCanvas(id, h, maxW) {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  const dpr = window.devicePixelRatio || 1;
+  // Remonter jusqu'à un parent significatif (card, tab-content) pour la largeur
+  let parent = el.parentElement;
+  while (parent && (parent.style.position === 'relative' || parent.tagName === 'DIV' && !parent.clientWidth)) {
+    if (parent.clientWidth > 0) break;
+    parent = parent.parentElement;
+  }
+  const rawW = parent ? parent.clientWidth - 24 : 300;
+  const cssW = Math.max(maxW ? Math.min(rawW, maxW) : rawW, 200);
+  const cssH = h || 200;
+  // Dimensions internes × DPR pour rendu net sur écrans HiDPI
+  el.width  = Math.round(cssW * dpr);
+  el.height = Math.round(cssH * dpr);
+  el.style.width  = cssW + 'px';
+  el.style.height = cssH + 'px';
+  el.style.maxHeight = cssH + 'px';
+  const ctx = el.getContext('2d');
+  ctx.scale(dpr, dpr);
+  // Stocker dimensions CSS et DPR pour les fonctions interactives
+  el._dpr  = dpr;
+  el._cssW = cssW;
+  el._cssH = cssH;
+  return ctx;
+}
+
+function _roundRect(ctx, x, y, w, h, r) {
+  if (w < 1 || h < 1) return;
+  r = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+// Graphique barres vertical
+function drawBarChart(id, labels, values, colors, h, tooltipId) {
+  _clearChart(id);
+  const isYears = id === 'chart-years';
+  const canvasH = isYears ? 240 : (h || 200);
+  const ctx = _setupCanvas(id, canvasH);
+  if (!ctx || !labels.length) return;
+  // Utiliser les dimensions CSS (le ctx est déjà scalé par DPR)
+  const canvas = ctx.canvas;
+  const W = canvas._cssW || canvas.width;
+  const H = canvas._cssH || canvas.height;
+  // Pour les années, pad.b plus grand pour les labels inclinés
+  const pad = isYears
+    ? {t:10, r:10, b:56, l:36}
+    : {t:10, r:10, b:36, l:40};
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+  const maxV = Math.max(...values, 1);
+  const barW = Math.max(4, cW / labels.length * 0.7);
+  const gap   = cW / labels.length;
+
+  // Grilles horizontales
+  ctx.strokeStyle = 'rgba(255,255,255,.05)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + cH - (i/4)*cH;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W-pad.r, y); ctx.stroke();
+    ctx.fillStyle = '#8892a4';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round(maxV*i/4), pad.l-3, y+3);
+  }
+
+  // Stocker les zones de barres pour les tooltips
+  const barZones = [];
+  values.forEach((v, i) => {
+    const bh = Math.max(2, (v/maxV)*cH);
+    const x  = pad.l + i*gap + (gap-barW)/2;
+    const y  = pad.t + cH - bh;
+    const col = Array.isArray(colors) ? (colors[i % colors.length] || COLORS[i % COLORS.length]) : (colors || COLORS[i % COLORS.length]);
+
+    // Barre fond (transparente)
+    ctx.fillStyle = col + '22';
+    _roundRect(ctx, pad.l + i*gap, pad.t, gap, cH, 0);
+    ctx.fill();
+    // Barre pleine
+    ctx.fillStyle = col;
+    _roundRect(ctx, x, y, barW, bh, 3);
+    ctx.fill();
+
+    barZones.push({ x: pad.l + i*gap, y: pad.t, w: gap, h: cH, label: labels[i], value: v });
+
+    // Labels axe X
+    ctx.fillStyle = '#8892a4';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'center';
+    const lbl = String(labels[i]);
+    if (isYears) {
+      // Afficher seulement 1 label sur N pour éviter les chevauchements
+      const step = labels.length > 40 ? 5 : labels.length > 20 ? 3 : labels.length > 10 ? 2 : 1;
+      // Préférer les années rondes (multiples de step)
+      const yr = parseInt(lbl);
+      const showLabel = !isNaN(yr) ? (yr % step === 0) : (i % step === 0);
+      if (showLabel) {
+        ctx.save();
+        ctx.translate(pad.l + i*gap + gap/2, H - pad.b + 6);
+        ctx.rotate(-Math.PI / 4);
+        ctx.textAlign = 'right';
+        ctx.fillText(lbl, 0, 0);
+        ctx.restore();
+      }
+    } else {
+      ctx.fillText(lbl.length > 8 ? lbl.slice(0,7)+'…' : lbl, pad.l + i*gap + gap/2, H - 4);
+    }
+  });
+
+  _charts[id] = { type:'bar', barZones };
+
+  // Tooltip interactif
+  if (tooltipId) {
+    const canvas = ctx.canvas;
+    const tooltip = document.getElementById(tooltipId);
+    if (!tooltip) return;
+    canvas.style.cursor = 'crosshair';
+    canvas.onmousemove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      // Coordonnées en espace CSS (les barZones sont aussi en espace CSS)
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      let found = null;
+      for (const z of barZones) {
+        if (mx >= z.x && mx <= z.x + z.w && my >= z.y && my <= z.y + z.h) { found = z; break; }
+      }
+      if (found) {
+        const unitLabel = id === 'chart-ratings' ? 'film' : 'film';
+        const plural = found.value > 1 ? 's' : '';
+        tooltip.innerHTML = `<span style="color:#e5a00d;font-weight:700">${found.label}</span> · <span style="color:#00b4c8;font-weight:700">${found.value}</span> ${unitLabel}${plural}`;
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX + 14) + 'px';
+        tooltip.style.top  = (e.clientY - 10) + 'px';
+        // Redessiner avec surbrillance
+        _redrawBarChartHighlight(ctx, W, H, pad, cW, cH, maxV, gap, barW, values, labels, colors, barZones, found, isYears);
+      } else {
+        tooltip.style.display = 'none';
+        _redrawBarChartHighlight(ctx, W, H, pad, cW, cH, maxV, gap, barW, values, labels, colors, barZones, null, isYears);
+      }
+    };
+    canvas.onmouseleave = () => {
+      tooltip.style.display = 'none';
+      _redrawBarChartHighlight(ctx, W, H, pad, cW, cH, maxV, gap, barW, values, labels, colors, barZones, null, isYears);
+    };
+  }
+}
+
+function _redrawBarChartHighlight(ctx, W, H, pad, cW, cH, maxV, gap, barW, values, labels, colors, barZones, hovered, isYears) {
+  const canvas = ctx.canvas;
+  const dpr = canvas._dpr || 1;
+  ctx.clearRect(0, 0, canvas._cssW || canvas.width, canvas._cssH || canvas.height);
+  // Grilles
+  ctx.strokeStyle = 'rgba(255,255,255,.05)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + cH - (i/4)*cH;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W-pad.r, y); ctx.stroke();
+    ctx.fillStyle = '#8892a4';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round(maxV*i/4), pad.l-3, y+3);
+  }
+  values.forEach((v, i) => {
+    const bh = Math.max(2, (v/maxV)*cH);
+    const x  = pad.l + i*gap + (gap-barW)/2;
+    const y  = pad.t + cH - bh;
+    const col = Array.isArray(colors) ? (colors[i % colors.length] || COLORS[i % COLORS.length]) : (colors || COLORS[i % COLORS.length]);
+    const isHov = hovered && barZones[i] === hovered;
+    ctx.fillStyle = isHov ? col + '44' : col + '22';
+    _roundRect(ctx, pad.l + i*gap, pad.t, gap, cH, 0);
+    ctx.fill();
+    ctx.fillStyle = isHov ? col : col + (hovered ? 'aa' : 'ff');
+    ctx.globalAlpha = isHov ? 1 : (hovered ? 0.6 : 1);
+    _roundRect(ctx, x, y, barW, bh, 3);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#8892a4';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'center';
+    const lbl = String(labels[i]);
+    if (isYears) {
+      const step = labels.length > 40 ? 5 : labels.length > 20 ? 3 : labels.length > 10 ? 2 : 1;
+      const yr = parseInt(lbl);
+      const showLabel = !isNaN(yr) ? (yr % step === 0) : (i % step === 0);
+      if (showLabel) {
+        ctx.save();
+        ctx.translate(pad.l + i*gap + gap/2, H - pad.b + 6);
+        ctx.rotate(-Math.PI / 4);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = isHov ? '#e2e8f0' : '#8892a4';
+        ctx.fillText(lbl, 0, 0);
+        ctx.restore();
+      }
+    } else {
+      ctx.fillStyle = isHov ? '#e2e8f0' : '#8892a4';
+      ctx.fillText(lbl.length > 8 ? lbl.slice(0,7)+'…' : lbl, pad.l + i*gap + gap/2, H - 4);
+    }
+  });
+}
+
+// Graphique barres horizontal — HTML pur (net, lisible, identique aux genres)
+function drawHBarChart(id, labels, values, colors, h) {
+  // Graphiques rendus en HTML pur pour une netteté maximale
+  const htmlMap = {
+    'chart-directors': 'directors-bars',
+    'chart-music-genres': 'music-genres-bars',
+  };
+  const htmlId = htmlMap[id];
+  if (htmlId) {
+    const el = g(htmlId);
+    if (!el || !labels.length) return;
+    const maxV = Math.max(...values, 1);
+    el.innerHTML = labels.map((lbl, i) => {
+      const col = Array.isArray(colors) ? colors[i % colors.length] : COLORS[i % COLORS.length];
+      const pct = Math.round(values[i] / maxV * 100);
+      return `<div class="hbar-row">
+        <span class="hbar-label">${escH(String(lbl))}</span>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${col}"></div></div>
+        <span class="hbar-val">${values[i]}</span>
+      </div>`;
+    }).join('');
+    _charts[id] = { type: 'hbar-html' };
+    return;
+  }
+
+  // Fallback canvas pour les autres cas (musique etc.)
+  _clearChart(id);
+  const ctx = _setupCanvas(id, h || Math.max(160, labels.length * 22 + 20), 700);
+  if (!ctx || !labels.length) return;
+  const W = ctx.canvas._cssW || ctx.canvas.width;
+  const H = ctx.canvas._cssH || ctx.canvas.height;
+  const pad = {t:8, r:60, b:8, l:120};
+  const cW = W - pad.l - pad.r;
+  const cH = H - pad.t - pad.b;
+  const maxV = Math.max(...values, 1);
+  const barH = Math.max(8, Math.min(18, cH / labels.length - 6));
+  const gap  = cH / labels.length;
+
+  labels.forEach((lbl, i) => {
+    const bw  = Math.max(2, (values[i]/maxV)*cW);
+    const y   = pad.t + i*gap + (gap-barH)/2;
+    const col = Array.isArray(colors) ? (colors[i % colors.length]) : COLORS[i % COLORS.length];
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'right';
+    const lTxt = String(lbl);
+    ctx.fillText(lTxt.length > 16 ? lTxt.slice(0,15)+'…' : lTxt, pad.l - 5, y + barH*0.7);
+    ctx.fillStyle = col + '30';
+    _roundRect(ctx, pad.l, y, cW, barH, 3);
+    ctx.fill();
+    ctx.fillStyle = col;
+    _roundRect(ctx, pad.l, y, bw, barH, 3);
+    ctx.fill();
+    ctx.fillStyle = '#8892a4';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(values[i], pad.l + bw + 4, y + barH*0.7);
+  });
+  _charts[id] = {type:'hbar'};
+}
+
+// Graphique donut interactif
+function drawDonut(id, labels, values, colors, tooltipId) {
+  _clearChart(id);
+  const ctx = _setupCanvas(id, 200, 560);
+  if (!ctx || !labels.length) return;
+  const canvas = ctx.canvas;
+  const W = canvas._cssW || canvas.width;
+  const H = canvas._cssH || canvas.height;
+  const total = values.reduce((a,b)=>a+b, 0);
+  if (total === 0) return;
+
+  // Géométrie fixe
+  const donutAreaW = Math.min(W * 0.42, 220);
+  const cx = donutAreaW / 2;
+  const cy = H / 2;
+  const R  = Math.min(donutAreaW / 2 - 8, cy - 8);
+  const r  = R * 0.55;
+
+  // Précalculer les segments (angle start/end)
+  const segments = [];
+  let angle = -Math.PI / 2;
+  values.forEach((v, i) => {
+    const sweep = (v / total) * 2 * Math.PI;
+    segments.push({
+      startAngle: angle,
+      endAngle: angle + sweep,
+      col: colors ? colors[i % colors.length] : COLORS[i % COLORS.length],
+      label: labels[i],
+      value: v,
+      pct: Math.round(v / total * 100),
+    });
+    angle += sweep;
+  });
+
+  // Légende (positions fixes)
+  const lx   = donutAreaW + 12;
+  const itemH = Math.min(18, (H - 10) / labels.length);
+  const ly0   = Math.max(6, (H - labels.length * itemH) / 2);
+
+  function render(hoveredIdx) {
+    ctx.clearRect(0, 0, W, H);
+
+    // ── Segments ──
+    segments.forEach((seg, i) => {
+      const isHov = i === hoveredIdx;
+      const outerR = isHov ? R + 6 : R;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, outerR, seg.startAngle, seg.endAngle);
+      ctx.closePath();
+      ctx.fillStyle = isHov ? seg.col : (hoveredIdx !== null && hoveredIdx !== undefined ? seg.col + 'aa' : seg.col);
+      ctx.fill();
+      ctx.strokeStyle = '#1e2a45';
+      ctx.lineWidth = isHov ? 3 : 2;
+      ctx.stroke();
+    });
+
+    // ── Trou central ──
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.fillStyle = '#1e2a45';
+    ctx.fill();
+
+    // ── Texte centre ──
+    if (hoveredIdx !== null && hoveredIdx !== undefined) {
+      const seg = segments[hoveredIdx];
+      ctx.fillStyle = seg.col;
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(seg.pct + '%', cx, cy - 4);
+      ctx.fillStyle = '#8892a4';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(seg.value.toLocaleString('fr'), cx, cy + 11);
+    } else {
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(total.toLocaleString('fr'), cx, cy + 5);
+    }
+
+    // ── Légende ──
+    segments.forEach((seg, i) => {
+      const isHov = i === hoveredIdx;
+      const y = ly0 + i * itemH;
+      // Carré couleur
+      ctx.fillStyle = isHov ? seg.col : (hoveredIdx !== null && hoveredIdx !== undefined ? seg.col + 'aa' : seg.col);
+      ctx.fillRect(lx, y + 1, 8, 8);
+      // Texte
+      ctx.fillStyle = isHov ? '#e2e8f0' : (hoveredIdx !== null && hoveredIdx !== undefined ? '#6b7280' : '#8892a4');
+      ctx.font = isHov ? 'bold 9px sans-serif' : '9px sans-serif';
+      ctx.textAlign = 'left';
+      const maxLen = Math.floor((W - lx - 14) / 5.5);
+      const lTxt = String(seg.label).length > maxLen ? String(seg.label).slice(0, maxLen - 1) + '…' : String(seg.label);
+      ctx.fillText(lTxt + ' ' + seg.pct + '%', lx + 11, y + 9);
+    });
+  }
+
+  render(null);
+  _charts[id] = { type: 'donut' };
+
+  if (!tooltipId) return;
+  const tooltip = document.getElementById(tooltipId);
+  if (!tooltip) return;
+
+  canvas.style.cursor = 'default';
+
+  function getHoveredSegment(e) {
+    const rect = canvas.getBoundingClientRect();
+    // Coordonnées en espace CSS (cx, cy, R, r sont en espace CSS)
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const dx = mx - cx, dy = my - cy;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < r || dist > R + 10) return null;
+    let a = Math.atan2(dy, dx);
+    // Normaliser pour correspondre à startAngle=-PI/2
+    if (a < -Math.PI / 2) a += 2 * Math.PI;
+    for (let i = 0; i < segments.length; i++) {
+      let s = segments[i].startAngle;
+      let e2 = segments[i].endAngle;
+      // Gérer le wrap autour de -PI/2
+      if (s < -Math.PI/2) s += 2*Math.PI;
+      if (e2 < -Math.PI/2) e2 += 2*Math.PI;
+      if (e2 < s) e2 += 2*Math.PI;
+      const aa = a < s ? a + 2*Math.PI : a;
+      if (aa >= s && aa <= e2) return i;
+    }
+    return null;
+  }
+
+  let lastHov = null;
+  canvas.onmousemove = (e) => {
+    const idx = getHoveredSegment(e);
+    if (idx !== lastHov) {
+      lastHov = idx;
+      render(idx);
+    }
+    if (idx !== null) {
+      const seg = segments[idx];
+      canvas.style.cursor = 'pointer';
+      tooltip.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${seg.col};margin-right:6px;vertical-align:middle;"></span><span style="color:#e2e8f0;font-weight:700">${seg.label}</span> · <span style="color:${seg.col};font-weight:700">${seg.pct}%</span> <span style="color:#8892a4">(${seg.value.toLocaleString('fr')} films)</span>`;
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top  = (e.clientY - 10) + 'px';
+    } else {
+      canvas.style.cursor = 'default';
+      tooltip.style.display = 'none';
+    }
+  };
+  canvas.onmouseleave = () => {
+    lastHov = null;
+    render(null);
+    tooltip.style.display = 'none';
+  };
+}
+
+// ===== UTILITAIRES HTML =====
+function escH(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function rColor(r) { return !r ? '#6b7280' : r>=8 ? '#22c55e' : r>=6 ? '#e5a00d' : '#ef4444'; }
+function bRes(r) {
+  if (!r) return '';
+  const m = {'4K':'b4k','1080p':'b1080','720p':'b720','sd':'bsd','480p':'b480','576p':'b480','2k':'b2k','2K':'b2k'};
+  return `<span class="badge ${m[r]||'bother'}">${String(r).toUpperCase()}</span>`;
+}
+function bCodec(c) {
+  if (!c) return '';
+  const m = {hevc:'bhevc',h264:'bh264',mpeg4:'bmpeg4',msmpeg4v3:'bother',av1:'bother',vc1:'bother',vp9:'bother'};
+  const lbl = {hevc:'HEVC',h264:'H264',mpeg4:'MPEG4',msmpeg4v3:'MSMPEG4',av1:'AV1',vc1:'VC1',vp9:'VP9'};
+  return `<span class="badge ${m[c]||'bother'}">${lbl[c]||String(c).toUpperCase()}</span>`;
+}
+function bAudio(a) {
+  if (!a) return '';
+  const m = {flac:'bflac',mp3:'bmp3',eac3:'beac3',aac:'baac',truehd:'btruehd','dca-ma':'bdcama',dca:'bdca',ac3:'bac3',wmav2:'bwma',opus:'bother'};
+  return `<span class="badge ${m[a]||'bother'}">${String(a).toUpperCase()}</span>`;
+}
+function b10bit(v) { return +v===1 ? '<span class="badge b10bit">10bit</span>' : (v===''||v===null||v===undefined ? '<span style="color:var(--text2);font-size:11px">—</span>' : '<span style="color:var(--text2);font-size:11px">8bit</span>'); }
+function bResOrDash(r) { return bRes(r) || '<span style="color:var(--text2)">—</span>'; }
+function bCodecOrDash(c) { return bCodec(c) || '<span style="color:var(--text2)">—</span>'; }
+function fSize(gb) { if (!gb||isNaN(gb)) return '<span style="color:var(--text2)">—</span>'; return gb>=1 ? gb.toFixed(1)+' GB' : (gb*1000).toFixed(0)+' MB'; }
+function fSizeMB(mb) { if (!mb) return '—'; return mb>=1000 ? (mb/1000).toFixed(2)+' GB' : (+mb).toFixed(2)+' MB'; }
+function fDur(m) { if (!m||isNaN(m)) return '—'; const hh=Math.floor(m/60), mn=m%60; return hh>0 ? hh+'h '+String(Math.round(mn)).padStart(2,'0') : Math.round(m)+'min'; }
+function sBar(gb,mx) { if (!gb) return ''; const w=Math.max(2,Math.round(gb/mx*70)); return `<span class="sbar" style="width:${w}px"></span>`; }
+function fmtDurTile(min) { const d=Math.floor(min/60/24),hh=Math.floor((min/60)%24),mm=Math.round(min%60); return d>0?d+'j '+hh+'h':hh>0?hh+'h '+mm+'m':mm+'min'; }
+function g(id) { return document.getElementById(id); }
+
+// ===== DÉTECTION BIBLIOTHÈQUE =====
+function detectLibCategory(row) {
+  const lt  = String(row.library_type || row.libraryType || row.type || '').toLowerCase();
+  const lib = String(row.library || row.Library || row.section || '').toLowerCase();
+
+  // 1. Priorité absolue : utiliser le champ library s'il est explicite
+  // Correspondances exactes du CSV : Musique, Films, Séries TV, Docs, Autres Docs, Concert
+  if (lib === 'musique' || lib === 'music') return 'music';
+  if (lib === 'films' || lib === 'film') return 'films';
+  if (lib === 'séries tv' || lib === 'series tv' || lib === 'séries' || lib === 'series') return 'series';
+  if (lib === 'concert' || lib === 'spectacle') return 'concert';
+  if (lib === 'autres docs' || lib === 'autres') return 'autres';
+  if (lib === 'docs' || lib === 'documentaires' || lib === 'documentaire') return 'docs';
+
+  // 2. Détection par library_type (champ plus fiable que les colonnes de données)
+  if (lt.includes('piste') || lt.includes('track') || lt.includes('music') || lt.includes('musique')) return 'music';
+  if (lt.includes('série') || lt.includes('serie') || lt.includes('episode') || lt.includes('show')) return 'series';
+  if (lt.includes('film') || lt.includes('movie')) return 'films';
+
+  // 3. Détection par contenu du champ library (includes pour variantes)
+  if (lib.includes('musique') || lib.includes('music')) return 'music';
+  if (lib.includes('concert') || lib.includes('spectacle')) return 'concert';
+  if (lib.includes('autres') || lib.includes('other') || lib.includes('divers')) return 'autres';
+  if (lib.includes('doc') || lib.includes('documentaire')) return 'docs';
+  if (lib.includes('série') || lib.includes('serie')) return 'series';
+  if (lib.includes('film') || lib.includes('movie') || lib.includes('cin')) return 'films';
+
+  // 4. Détection par données (ATTENTION: tester la valeur non vide, pas undefined)
+  if ((row.music_artist !== undefined && row.music_artist !== '') ||
+      (row.music_album  !== undefined && row.music_album  !== '')) return 'music';
+
+  if ((row.seasons !== undefined && row.seasons !== '') ||
+      (row.episodes !== undefined && row.episodes !== '')) return 'series';
+
+  if ((row.director !== undefined && row.director !== '') ||
+      (row.resolution !== undefined && row.resolution !== '') ||
+      (row.videoCodec !== undefined && row.videoCodec !== '')) return 'films';
+
+  return 'autres';
+}
+
+// ===== NAVIGATION =====
+function showTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(e=>e.classList.remove('active'));
+  const el = g('tab-'+tab);
+  if (el) el.classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (tab==='musique' && !window._mChartsInit && MUSIC.length>0) {
+    initMusicCharts(); window._mChartsInit=true;
+  }
+}
+
+function updateTabVisibility() {
+  [['films',FILMS],['series',SERIES],['docs',DOCS],['autres',AUTRES],['concerts',CONCERT],['musique',MUSIC]]
+  .forEach(([tab,data])=>{
+    const btn = document.querySelector(`.nav-tab[onclick*="'${tab}'"]`);
+    if (btn) btn.style.display = data.length>0 ? '' : 'none';
+  });
+  setTimeout(updateNavScrollBtns, 50);
+}
+
+// ===== DASHBOARD =====
+function initDashboard() {
+  if (!FILMS.length && !SERIES.length && !MUSIC.length) return;
+
+  // Barres genres (HTML pur)
+  const ge = g('genres-bars');
+  const genres = STATS.film_genres;
+  if (ge && Object.keys(genres).length) {
+    const mxG = Math.max(...Object.values(genres), 1);
+    ge.innerHTML = Object.entries(genres).map(([gn,v],i)=>
+      `<div class="hbar-row"><span class="hbar-label">${escH(gn)}</span><div class="hbar-track"><div class="hbar-fill" style="width:${Math.round(v/mxG*100)}%;background:${COLORS[i%COLORS.length]}"></div></div><span class="hbar-val">${v}</span></div>`
+    ).join('');
+  }
+
+  // Rankings (HTML pur)
+  function rl(items, vk, cls, fmt) {
+    return items.map((f,i)=>
+      `<div class="rank-row"><span class="rank-num">${i+1}</span><span class="rank-title" title="${escH(f.title)}">${escH(f.title)}</span><span class="rank-year">${f.year||''}</span><span class="rank-val ${cls}">${fmt(f[vk])}</span></div>`
+    ).join('');
+  }
+  // Ranking enrichi pour les séries lourdes : poids + résolution + codec
+  function rlSeriesHeavy(items) {
+    return items.map((s,i)=>{
+      const sz = +s.fileSizeGB>0 ? (+s.fileSizeGB).toFixed(1)+' GB' : '—';
+      const resBadge   = s.resolution ? `<span class="badge ${{'4K':'b4k','1080p':'b1080','720p':'b720','sd':'bsd'}[s.resolution]||'bother'}" style="font-size:9px;padding:1px 4px">${s.resolution}</span>` : '';
+      const codecBadge = s.videoCodec ? `<span class="badge ${{hevc:'bhevc',h264:'bh264',mpeg4:'bmpeg4'}[s.videoCodec]||'bother'}" style="font-size:9px;padding:1px 4px">${s.videoCodec.toUpperCase()}</span>` : '';
+      return `<div class="rank-row">
+        <span class="rank-num">${i+1}</span>
+        <span class="rank-title" title="${escH(s.title)}">${escH(s.title)}</span>
+        <span class="rank-year">${s.year||''}</span>
+        <span style="display:flex;align-items:center;gap:3px;flex-shrink:0">${resBadge}${codecBadge}</span>
+        <span class="rank-val heavy">${sz}</span>
+      </div>`;
+    }).join('');
+  }
+  const setHTML = (id,html) => { const el=g(id); if(el) el.innerHTML=html; };
+  setHTML('top10-best',   rl(STATS.top10_films_best,   'audienceRating','best',  v=>v?(+v).toFixed(1):'—'));
+  setHTML('top10-worst',  rl(STATS.top10_films_worst,  'audienceRating','worst', v=>v?(+v).toFixed(1):'—'));
+  setHTML('top10-heavy',  rl(STATS.top10_films_heavy,  'fileSizeGB',    'heavy', v=>v?(+v).toFixed(1)+' GB':'—'));
+  setHTML('top10-series-best',  rl(STATS.top10_series_best,  'audienceRating','best',  v=>v?(+v).toFixed(1):'—'));
+  setHTML('top10-series-worst', rl(STATS.top10_series_worst, 'audienceRating','worst', v=>v?(+v).toFixed(1):'—'));
+  setHTML('top10-series-heavy', rlSeriesHeavy(STATS.top10_series_heavy));
+
+  // Graphiques canvas (après un léger délai pour que le DOM soit peint)
+  setTimeout(() => {
+    if (STATS.top_directors.length) {
+      drawHBarChart('chart-directors',
+        STATS.top_directors.map(d=>d[0]),
+        STATS.top_directors.map(d=>d[1]),
+        COLORS, Math.max(160, STATS.top_directors.length*22+20));
+    }
+    if (Object.keys(STATS.res_counts).length) {
+      drawDonut('chart-res', Object.keys(STATS.res_counts), Object.values(STATS.res_counts), COLORS, 'tooltip-res');
+    }
+    if (Object.keys(STATS.vc_counts).length) {
+      drawDonut('chart-codec', Object.keys(STATS.vc_counts).map(k=>k.toUpperCase()), Object.values(STATS.vc_counts), COLORS.slice(3), 'tooltip-codec');
+    }
+    if (Object.keys(STATS.ac_counts).length) {
+      drawDonut('chart-audio', Object.keys(STATS.ac_counts).map(k=>k.toUpperCase()), Object.values(STATS.ac_counts), COLORS.slice(6), 'tooltip-audio');
+    }
+    if (Object.keys(STATS.films_by_year).length) {
+      drawBarChart('chart-years', Object.keys(STATS.films_by_year), Object.values(STATS.films_by_year), '#00b4c8', 240, 'tooltip-years');
+    }
+    if (Object.keys(STATS.rat_dist).length) {
+      const rKeys = Object.keys(STATS.rat_dist);
+      const rCols = rKeys.map(k=>+k>=8?'#22c55e':+k>=6?'#e5a00d':'#ef4444');
+      drawBarChart('chart-ratings', rKeys, Object.values(STATS.rat_dist), rCols, 200, 'tooltip-ratings');
+    }
+  }, 60);
+}
+
+// ===== FILMS =====
+let fSortKey = 'title';
+function initFilmsTab() {
+  const genres = new Set();
+  FILMS.forEach(f=>(f.genres||'').split('|').forEach(g=>{if(g.trim())genres.add(g.trim());}));
+  const sel = g('films-genre');
+  if (sel) { while(sel.options.length>1) sel.remove(1); [...genres].sort().forEach(gn=>{const o=document.createElement('option');o.value=gn;o.textContent=gn;sel.appendChild(o);}); }
+  const totalMin = FILMS.reduce((s,f)=>s+(+f.durationMin||0),0);
+  const el = document.querySelector('#tab-films>div');
+  if (el) el.innerHTML=`⏱ Temps de visionnage : <span style="color:#00b4c8;font-weight:700">${fmtDurTile(totalMin)}</span> &nbsp;|&nbsp; ${Math.round(totalMin)} min · ${Math.floor(totalMin/60)}h · ${FILMS.length} films`;
+  filterFilms();
+}
+function setSortF(k) { fSortKey=k; const s=g('films-sort'); if(s) s.value=k; filterFilms(); }
+function filterFilms() {
+  const q      = (g('films-search')||{value:''}).value.toLowerCase();
+  const res    = (g('films-res')||{value:''}).value;
+  const codec  = (g('films-codec')||{value:''}).value;
+  const prof   = (g('films-profile')||{value:''}).value;
+  const genre  = (g('films-genre')||{value:''}).value;
+  const audio  = (g('films-audio')||{value:''}).value;
+  fSortKey     = (g('films-sort')||{value:'title'}).value;
+  fFiltered = FILMS.filter(f=>{
+    if (q && !((f.title||'').toLowerCase().includes(q)||(f.director||'').toLowerCase().includes(q))) return false;
+    if (res   && f.resolution !== res)   return false;
+    if (codec && f.videoCodec !== codec) return false;
+    if (prof!=='' && String(+f.is10bit)!==prof) return false;
+    if (genre && !(f.genres||'').split('|').map(x=>x.trim()).includes(genre)) return false;
+    if (audio && f.audioCodec !== audio) return false;
+    return true;
+  });
+  fFiltered.sort((a,b)=>{
+    switch(fSortKey){
+      case'title':  return (a.title||'').localeCompare(b.title||'','fr');
+      case'year-d': return (b.year||0)-(a.year||0);
+      case'year-a': return (a.year||0)-(b.year||0);
+      case'rat-d':  return (+b.audienceRating||0)-(+a.audienceRating||0);
+      case'rat-a':  return (+a.audienceRating||0)-(+b.audienceRating||0);
+      case'size-d': return (+b.fileSizeGB||0)-(+a.fileSizeGB||0);
+      case'dur-d':  return (+b.durationMin||0)-(+a.durationMin||0);
+      default: return 0;
+    }
+  });
+  renderFilms();
+}
+function resetFilms() {
+  ['films-search','films-res','films-codec','films-profile','films-genre','films-audio'].forEach(id=>{const el=g(id);if(el)el.value='';});
+  const s=g('films-sort'); if(s) s.value='title'; fSortKey='title'; filterFilms();
+}
+function renderFilms() {
+  const tbody = g('films-tbody'); if (!tbody) return;
+  const mx = Math.max(...FILMS.map(f=>+f.fileSizeGB||0), 1);
+  tbody.innerHTML = fFiltered.map(f=>`
+    <tr>
+      <td><div class="td-title">${escH(f.title)}</div><div class="td-sub">${escH(f.director)}</div></td>
+      <td class="td-year">${f.year||''}</td>
+      <td><span class="rating-dot" style="background:${rColor(f.audienceRating)}"></span><span style="font-size:12px;font-weight:600;color:${rColor(f.audienceRating)}">${f.audienceRating||'—'}</span></td>
+      <td style="white-space:nowrap">${fSize(+f.fileSizeGB)}${sBar(+f.fileSizeGB,mx)}</td>
+      <td>${bRes(f.resolution)}</td><td>${bCodec(f.videoCodec)}</td><td>${b10bit(f.is10bit)}</td>
+      <td style="color:var(--text2)">${fDur(+f.durationMin)}</td>
+      <td style="color:var(--text2);font-size:11px">${(f.genres||'').replace(/\|/g,' · ')}</td>
+      <td>${bAudio(f.audioCodec)}</td>
+      <td style="color:var(--text2);font-size:11px">${f.videoProfile||''}</td>
+      <td style="color:var(--text2)">${f.bitrateKbps?Math.round(+f.bitrateKbps/1000)+' Mbps':'—'}</td>
+    </tr>`).join('');
+}
+
+// ===== SERIES =====
+let sSortKey = 'title';
+function initSeriesTab() {
+  const genres = new Set();
+  SERIES.forEach(s=>(s.genres||'').split('|').forEach(gn=>{if(gn.trim())genres.add(gn.trim());}));
+  const sel = g('series-genre');
+  if (sel) { while(sel.options.length>1) sel.remove(1); [...genres].sort().forEach(gn=>{const o=document.createElement('option');o.value=gn;o.textContent=gn;sel.appendChild(o);}); }
+  filterSeries();
+}
+function setSortS(k) { sSortKey=k; const s=g('series-sort'); if(s) s.value=k; filterSeries(); }
+function filterSeries() {
+  const q     = (g('series-search')||{value:''}).value.toLowerCase();
+  const genre = (g('series-genre')||{value:''}).value;
+  sSortKey    = (g('series-sort')||{value:'title'}).value;
+  sFiltered = SERIES.filter(s=>{
+    if (q && !(s.title||'').toLowerCase().includes(q)) return false;
+    if (genre && !(s.genres||'').includes(genre)) return false;
+    return true;
+  });
+  sFiltered.sort((a,b)=>{
+    switch(sSortKey){
+      case'title':  return (a.title||'').localeCompare(b.title||'','fr');
+      case'year-d': return (b.year||0)-(a.year||0);
+      case'rat-d':  return (+b.audienceRating||0)-(+a.audienceRating||0);
+      case'ep-d':   return (+b.episodes||0)-(+a.episodes||0);
+      case'seas-d': return (+b.seasons||0)-(+a.seasons||0);
+      case'size-d': return (+b.fileSizeGB||0)-(+a.fileSizeGB||0);
+      case'dur-d':  return (+b.durationMin||0)-(+a.durationMin||0);
+      default: return 0;
+    }
+  });
+  renderSeries();
+}
+function resetSeries() {
+  ['series-search','series-genre'].forEach(id=>{const el=g(id);if(el)el.value='';});
+  const s=g('series-sort'); if(s) s.value='title'; sSortKey='title'; filterSeries();
+}
+function renderSeries() {
+  const tbody = g('series-tbody'); if (!tbody) return;
+  tbody.innerHTML = sFiltered.map(s=>{
+    const totalDurMin = +s.durationMin||0;
+    const totalSzGB   = +s.fileSizeGB||0;
+    // Pour le profil : si pas de résolution connue, on ne peut pas connaître le profil
+    const hasVideoData = !!(s.resolution || s.videoCodec);
+    const profilCell = hasVideoData ? b10bit(s.is10bit) : '<span style="color:var(--text2)">—</span>';
+    return `
+    <tr>
+      <td class="td-title">${escH(s.title)}</td>
+      <td class="td-year">${s.year||''}</td>
+      <td><span class="rating-dot" style="background:${rColor(s.audienceRating)}"></span><span style="font-size:12px;font-weight:600;color:${rColor(s.audienceRating)}">${s.audienceRating||'—'}</span></td>
+      <td>${totalSzGB>0?fSize(totalSzGB):'<span style="color:var(--text2)">—</span>'}</td>
+      <td>${bResOrDash(s.resolution)}</td><td>${bCodecOrDash(s.videoCodec)}</td><td>${profilCell}</td>
+      <td style="color:var(--text2)">${s.seasons||'—'}</td>
+      <td style="color:var(--text2)">${s.episodes||'—'}</td>
+      <td style="color:var(--text2)">${totalDurMin>0?fmtDurTile(totalDurMin):'—'}</td>
+      <td style="color:var(--text2);font-size:11px">${(s.genres||'').replace(/\|/g,' · ')}</td>
+      <td><span class="badge" style="background:rgba(0,180,200,.15);color:#00b4c8;border:1px solid rgba(0,180,200,.3)">${escH(s.library||'Séries TV')}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ===== DOCS =====
+function initDocsTab() { filterDocs(); }
+function filterDocs() {
+  const q  = (g('docs-search')||{value:''}).value.toLowerCase();
+  const sk = (g('docs-sort')||{value:'title'}).value;
+  let data = DOCS.filter(d=>!q||(d.title||'').toLowerCase().includes(q));
+  data.sort((a,b)=>sk==='rat-d'?(+b.audienceRating||0)-(+a.audienceRating||0):sk==='year-d'?(+b.year||0)-(+a.year||0):(a.title||'').localeCompare(b.title||'','fr'));
+  const tbody = g('docs-tbody');
+  if (tbody) tbody.innerHTML = data.map(d=>`
+    <tr>
+      <td class="td-title">${escH(d.title)}</td>
+      <td class="td-year">${d.year||''}</td>
+      <td><span class="rating-dot" style="background:${rColor(d.audienceRating)}"></span><span style="font-size:12px;font-weight:600;color:${rColor(d.audienceRating)}">${d.audienceRating||'—'}</span></td>
+      <td style="color:var(--text2)">${fDur(+d.durationMin)}</td>
+      <td style="color:var(--text2);font-size:11px">${(d.genres||'').replace(/\|/g,' · ')}</td>
+      <td>—</td><td>—</td>
+    </tr>`).join('');
+}
+function resetDocs() { const s=g('docs-search');if(s)s.value=''; const so=g('docs-sort');if(so)so.value='title'; filterDocs(); }
+
+// ===== AUTRES =====
+function initAutresTab() { filterAutres(); }
+function filterAutres() {
+  const q     = (g('autres-search')||{value:''}).value.toLowerCase();
+  const res   = (g('autres-res')||{value:''}).value;
+  const codec = (g('autres-codec')||{value:''}).value;
+  const sk    = (g('autres-sort')||{value:'title'}).value;
+  aFiltered = AUTRES.filter(a=>{
+    if (q && !(a.title||'').toLowerCase().includes(q)) return false;
+    if (res && a.resolution!==res) return false;
+    if (codec && a.videoCodec!==codec) return false;
+    return true;
+  });
+  aFiltered.sort((a,b)=>sk==='size-d'?(+b.fileSizeGB||0)-(+a.fileSizeGB||0):sk==='dur-d'?(+b.durationMin||0)-(+a.durationMin||0):(a.title||'').localeCompare(b.title||'','fr'));
+  renderAutres();
+}
+function resetAutres() { ['autres-search','autres-res','autres-codec'].forEach(id=>{const el=g(id);if(el)el.value='';}); const s=g('autres-sort');if(s)s.value='title'; filterAutres(); }
+function renderAutres() {
+  const tbody = g('autres-tbody'); if (!tbody) return;
+  tbody.innerHTML = aFiltered.map(a=>`
+    <tr>
+      <td class="td-title" style="max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escH(a.title)}">${escH(a.title)}</td>
+      <td class="td-year">${a.year||''}</td>
+      <td>${fSize(+a.fileSizeGB)}</td>
+      <td>${bRes(a.resolution)}</td><td>${bCodec(a.videoCodec)}</td>
+      <td style="color:var(--text2)">${fDur(+a.durationMin)}</td>
+      <td>—</td><td>—</td>
+    </tr>`).join('');
+}
+
+// ===== CONCERTS =====
+function initConcertsTab() {
+  const tbody = g('concerts-tbody'); if (!tbody) return;
+  tbody.innerHTML = CONCERT.map(c=>`
+    <tr>
+      <td class="td-title">${escH(c.title)}</td>
+      <td class="td-year">${c.year||''}</td>
+      <td>${fSize(+c.fileSizeGB)}</td>
+      <td>${bRes(c.resolution)}</td><td>${bCodec(c.videoCodec)}</td>
+      <td style="color:var(--text2)">${fDur(+c.durationMin)}</td>
+      <td>—</td><td>—</td>
+    </tr>`).join('');
+}
+
+// ===== MUSIQUE =====
+let mSortKey = 'title';
+function initMusicTab() {
+  const artists = [...new Set(MUSIC.map(m=>m.music_artist).filter(Boolean))].sort();
+  const sel = g('music-artist');
+  if (sel) { while(sel.options.length>1) sel.remove(1); artists.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;sel.appendChild(o);}); }
+  filterMusic();
+}
+function initMusicCharts() {
+  setTimeout(()=>{
+    if (Object.keys(STATS.mc_counts).length) {
+      drawDonut('chart-music-codec', Object.keys(STATS.mc_counts).map(k=>k.toUpperCase()), Object.values(STATS.mc_counts), ['#22c55e','#e5a00d','#ef4444','#3b82f6','#a855f7','#ec4899'], 'tooltip-music-codec');
+    }
+    if (Object.keys(STATS.music_genres).length) {
+      drawHBarChart('chart-music-genres', Object.keys(STATS.music_genres), Object.values(STATS.music_genres), COLORS, Math.max(160, Object.keys(STATS.music_genres).length*22+20));
+    }
+  }, 60);
+}
+function setSortM(k) { mSortKey=k; const s=g('music-sort'); if(s) s.value=k; filterMusic(); }
+function filterMusic() {
+  const q      = (g('music-search')||{value:''}).value.toLowerCase();
+  const artist = (g('music-artist')||{value:''}).value;
+  const codec  = (g('music-codec-f')||{value:''}).value;
+  mSortKey     = (g('music-sort')||{value:'title'}).value;
+  mFiltered = MUSIC.filter(m=>{
+    if (q && !((m.title||'').toLowerCase().includes(q)||(m.music_artist||'').toLowerCase().includes(q)||(m.music_album||'').toLowerCase().includes(q))) return false;
+    if (artist && m.music_artist!==artist) return false;
+    if (codec  && m.audioCodec!==codec)   return false;
+    return true;
+  });
+  mFiltered.sort((a,b)=>mSortKey==='artist'?(a.music_artist||'').localeCompare(b.music_artist||'','fr'):mSortKey==='bitrate-d'?(+b.music_bitrate_kbps||0)-(+a.music_bitrate_kbps||0):(a.title||'').localeCompare(b.title||'','fr'));
+  renderMusic();
+}
+function resetMusic() { ['music-search','music-artist','music-codec-f'].forEach(id=>{const el=g(id);if(el)el.value='';}); const s=g('music-sort');if(s)s.value='title'; mSortKey='title'; filterMusic(); }
+function renderMusic() {
+  const tbody = g('music-tbody'); if (!tbody) return;
+  tbody.innerHTML = mFiltered.map(m=>`
+    <tr>
+      <td class="td-title">${escH(m.title)}</td>
+      <td style="color:var(--text2)">${escH(m.music_artist)}</td>
+      <td style="color:var(--text2);font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escH(m.music_album)}">${escH(m.music_album)}</td>
+      <td style="color:var(--text2)">${m.music_track||'—'}</td>
+      <td style="color:var(--text2)">${m.durationMin?fDur(+m.durationMin):'—'}</td>
+      <td style="color:var(--text2);font-size:11px">${m.genres||''}</td>
+      <td>${bAudio(m.audioCodec)}</td>
+      <td style="color:${m.audioCodec==='flac'?'#4ade80':m.audioCodec==='mp3'?'#facc15':'var(--text2)'};font-weight:600">${m.music_bitrate_kbps?Math.round(+m.music_bitrate_kbps)+' kbps':'—'}</td>
+      <td style="color:var(--text2)">${fSizeMB(m.music_size_mb)}</td>
+    </tr>`).join('');
+}
+
+// ===== REBUILD STATS & DASHBOARD =====
+function rebuildStats() {
+  try {
+    const countBy = (arr,key)=>{const m={};arr.forEach(o=>{const v=o[key];if(v!=null&&v!=='')m[v]=(m[v]||0)+1;});return m;};
+
+    const gm={};
+    FILMS.forEach(f=>(f.genres||'').split('|').forEach(gn=>{gn=gn.trim();if(gn)gm[gn]=(gm[gn]||0)+1;}));
+    STATS.film_genres = Object.fromEntries(Object.entries(gm).sort((a,b)=>b[1]-a[1]).slice(0,12));
+
+    const dm={};
+    FILMS.forEach(f=>{if(f.director&&String(f.director).trim())dm[f.director]=(dm[f.director]||0)+1;});
+    STATS.top_directors = Object.entries(dm).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+    STATS.res_counts = countBy(FILMS,'resolution');
+    STATS.vc_counts  = countBy(FILMS,'videoCodec');
+    STATS.ac_counts  = countBy(FILMS,'audioCodec');
+
+    const ym={};
+    FILMS.forEach(f=>{if(f.year&&+f.year>=1960&&+f.year<=2030)ym[+f.year]=(ym[+f.year]||0)+1;});
+    STATS.films_by_year = Object.fromEntries(Object.entries(ym).sort((a,b)=>a[0]-b[0]));
+
+    const rm={};
+    FILMS.forEach(f=>{if(+f.audienceRating>0){const k=Math.floor(+f.audienceRating);rm[k]=(rm[k]||0)+1;}});
+    STATS.rat_dist = Object.fromEntries(Object.entries(rm).sort((a,b)=>+a[0]-+b[0]));
+
+    const sortedR = [...FILMS].filter(f=>+f.audienceRating>0).sort((a,b)=>+b.audienceRating-+a.audienceRating);
+    STATS.top10_films_best  = sortedR.slice(0,10);
+    STATS.top10_films_worst = [...sortedR].reverse().slice(0,10);
+    STATS.top10_films_heavy = [...FILMS].filter(f=>+f.fileSizeGB>0).sort((a,b)=>+b.fileSizeGB-+a.fileSizeGB).slice(0,10);
+
+    const sortedSR = [...SERIES].filter(s=>+s.audienceRating>0).sort((a,b)=>+b.audienceRating-+a.audienceRating);
+    STATS.top10_series_best  = sortedSR.slice(0,10);
+    STATS.top10_series_worst = [...sortedSR].reverse().slice(0,10);
+    STATS.top10_series_heavy = [...SERIES]
+      .filter(s=>+s.fileSizeGB>0)
+      .sort((a,b)=>(+b.fileSizeGB||0)-(+a.fileSizeGB||0)).slice(0,10);
+
+    STATS.mc_counts = countBy(MUSIC,'audioCodec');
+    const mgm={};
+    MUSIC.forEach(m=>(m.genres||'').split('|').forEach(gn=>{gn=gn.trim();if(gn)mgm[gn]=(mgm[gn]||0)+1;}));
+    STATS.music_genres = Object.fromEntries(Object.entries(mgm).sort((a,b)=>b[1]-a[1]).slice(0,10));
+
+    // Tuiles
+    const setT = (id,v)=>{const el=g(id);if(el)el.textContent=v;};
+    const totalEp   = SERIES.reduce((s,x)=>s+(+x.episodes||0),0);
+    const totalSzGB = FILMS.reduce((s,f)=>s+(+f.fileSizeGB||0),0)
+                    + SERIES.reduce((s,x)=>s+(+x.fileSizeGB||0),0);
+    const ratedFilms = FILMS.filter(f=>+f.audienceRating>0);
+    const avgRat = ratedFilms.length?(ratedFilms.reduce((s,f)=>s+(+f.audienceRating),0)/ratedFilms.length).toFixed(2):'—';
+    const p4k    = FILMS.length?Math.round(FILMS.filter(f=>f.resolution==='4K').length/FILMS.length*100):0;
+    const p10b   = FILMS.length?Math.round(FILMS.filter(f=>+f.is10bit===1).length/FILMS.length*100):0;
+    const pFlac  = MUSIC.length?Math.round(MUSIC.filter(m=>m.audioCodec==='flac').length/MUSIC.length*100):0;
+    const dcArr  = Object.entries(STATS.vc_counts).sort((a,b)=>b[1]-a[1]);
+    const domCodec = dcArr.length?dcArr[0][0].toUpperCase():'—';
+    const years  = FILMS.map(f=>+f.year).filter(y=>y>1900).sort((a,b)=>a-b);
+    const medY   = years.length?years[Math.floor(years.length/2)]:'—';
+    const durF   = FILMS.map(f=>+f.durationMin).filter(d=>d>0);
+    const avgDur = durF.length?Math.round(durF.reduce((s,d)=>s+d,0)/durF.length):0;
+    const avgDurStr = avgDur?Math.floor(avgDur/60)+'h'+String(avgDur%60).padStart(2,'0'):'—';
+    const allSz  = [...FILMS.map(f=>+f.fileSizeGB),...SERIES.map(s=>(+s.fileSizeGB||0))].filter(s=>s>0);
+    const avgSz  = allSz.length?(allSz.reduce((s,v)=>s+v,0)/allSz.length).toFixed(1)+' GB':'—';
+    const allDates = [...FILMS,...SERIES].map(f=>f.addedAt).filter(Boolean).sort().reverse();
+    const lastAdded = allDates.length?allDates[0].slice(0,10):'—';
+
+    setT('tile-films',      FILMS.length||'—');
+    setT('tile-series',     SERIES.length||'—');
+    setT('tile-episodes',   totalEp||'—');
+    setT('tile-music',      MUSIC.length||'—');
+    setT('tile-storage',    totalSzGB>0?(totalSzGB/1000).toFixed(1)+' TB':'—');
+    setT('tile-rating',     avgRat);
+    setT('tile-4k',         p4k+'%');
+    setT('tile-10bit',      p10b+'%');
+    setT('tile-flac',       pFlac?pFlac+'%':'—');
+    setT('tile-codec',      domCodec);
+    setT('tile-medianyear', medY);
+    setT('tile-avgdur',     avgDurStr);
+    setT('tile-avgsize',    avgSz);
+    setT('tile-lastadded',  lastAdded);
+
+    // Compteurs onglets
+    const cnts = document.querySelectorAll('.nav-tab .cnt');
+    [FILMS.length,SERIES.length,DOCS.length,AUTRES.length,CONCERT.length,MUSIC.length].forEach((v,i)=>{if(cnts[i])cnts[i].textContent=(+v).toLocaleString('fr');});
+
+    // Durée tiles
+    const fMin=FILMS.reduce((s,f)=>s+(+f.durationMin||0),0);
+    const sMin=SERIES.reduce((s,x)=>s+((+x.durationMin||0)),0);
+    const dMin=DOCS.reduce((s,x)=>s+(+x.durationMin||0),0);
+    const cMin=CONCERT.reduce((s,x)=>s+(+x.durationMin||0),0);
+    const mMin=MUSIC.reduce((s,x)=>s+(+x.durationMin||0),0);
+    const durCats=[];
+    if(FILMS.length)   durCats.push({label:'🎬 Films',    min:fMin,sub:FILMS.length+' films',color:'#e879f9'});
+    if(SERIES.length)  durCats.push({label:'📺 Séries TV', min:sMin,sub:SERIES.reduce((s,x)=>s+(+x.episodes||0),0)+' ép.',color:'#00b4c8'});
+    if(DOCS.length)    durCats.push({label:'📁 Docs',      min:dMin,sub:DOCS.length+' docs',color:'#e5a00d'});
+    if(CONCERT.length) durCats.push({label:'🎵 Concerts',  min:cMin,sub:CONCERT.length+' concerts',color:'#a855f7'});
+    if(MUSIC.length)   durCats.push({label:'🎸 Musique',   min:mMin,sub:MUSIC.length+' pistes',color:'#f43f5e'});
+    const maxDur=Math.max(...durCats.map(c=>c.min),1);
+    const dc=g('dur-tiles-container');
+    if(dc){
+      dc.style.gridTemplateColumns='repeat('+Math.max(durCats.length,1)+',1fr)';
+      dc.innerHTML=durCats.map(c=>`
+        <div class="dur-tile">
+          <div class="dur-label">${c.label}</div>
+          <div class="dur-value" style="color:${c.color}">${fmtDurTile(c.min)}</div>
+          <div class="dur-sub">${Math.round(c.min)} min · ${c.sub}</div>
+          <div class="dur-bar"><div class="dur-fill" style="width:${Math.round(c.min/maxDur*100)}%;background:${c.color}"></div></div>
+        </div>`).join('');
+    }
+
+    // Badge total
+    const totalMin=fMin+sMin+dMin+cMin+mMin;
+    const totalH=Math.round(totalMin/60);
+    const tDays=Math.floor(totalMin/60/24), tHr=Math.floor((totalMin/60)%24);
+    const el_tv=g('total-val-display');    if(el_tv) el_tv.textContent=tDays+'j '+tHr+'h';
+    const el_th=g('total-hours-display');  if(el_th) el_th.textContent='≈ '+totalH.toLocaleString('fr')+' heures';
+    const el_3h=g('total-3h-display');     if(el_3h) el_3h.textContent='· soit '+totalH.toLocaleString('fr')+'h à 3h/jour = '+(totalH/3/365).toFixed(1)+' ans';
+    const cats=[];
+    if(FILMS.length)cats.push('Films');if(SERIES.length)cats.push('Séries');if(DOCS.length)cats.push('Docs');if(CONCERT.length)cats.push('Concerts');if(MUSIC.length)cats.push('Musique');
+    const lbl=g('total-badge-label'); if(lbl) lbl.textContent='Durée totale cumulée · '+(cats.join(' + ')||'aucune donnée');
+
+    // Logo sub
+    const totalEntries=FILMS.length+SERIES.length+MUSIC.length+DOCS.length+AUTRES.length+CONCERT.length;
+    const totalSzAll=(FILMS.reduce((s,f)=>s+(+f.fileSizeGB||0),0)+SERIES.reduce((s,x)=>s+(+x.fileSizeGB||0),0)+AUTRES.reduce((s,x)=>s+(+x.fileSizeGB||0),0)+CONCERT.reduce((s,x)=>s+(+x.fileSizeGB||0),0));
+    const now=new Date();
+    const mois=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'][now.getMonth()];
+    const ls=g('logo-sub'); if(ls) ls.textContent=totalEntries.toLocaleString('fr')+' entrées · '+(totalSzAll/1000).toFixed(1)+' TB · '+mois+' '+now.getFullYear();
+
+    // En-têtes onglets
+    const fMinH=FILMS.reduce((s,f)=>s+(+f.durationMin||0),0);
+    const sMinH=SERIES.reduce((s,x)=>s+((+x.durationMin||0)),0);
+    const elFH=document.querySelector('#tab-films>div');
+    if(elFH&&FILMS.length) elFH.innerHTML='⏱ Temps de visionnage : <span style="color:#00b4c8;font-weight:700">'+fmtDurTile(fMinH)+'</span> &nbsp;|&nbsp; '+Math.round(fMinH)+' min · '+Math.floor(fMinH/60)+'h · '+FILMS.length+' films';
+    const elSH=document.querySelector('#tab-series>div');
+    if(elSH&&SERIES.length){const epH=SERIES.reduce((s,x)=>s+(+x.episodes||0),0);elSH.innerHTML='⏱ Temps de visionnage : <span style="color:#00b4c8;font-weight:700">'+fmtDurTile(sMinH)+'</span> &nbsp;|&nbsp; '+Math.round(sMinH)+' min · '+epH+' épisodes · '+SERIES.length+' séries';}
+    if(MUSIC.length){const elMH=document.querySelector('#tab-musique>div');if(elMH){const pFH=Math.round(MUSIC.filter(m=>m.audioCodec==='flac').length/MUSIC.length*100);const alb=new Set(MUSIC.map(m=>m.music_album).filter(Boolean)).size;const art=new Set(MUSIC.map(m=>m.music_artist).filter(Boolean)).size;const mbr=MUSIC.filter(m=>+m.music_bitrate_kbps>0);const avgBr=mbr.length?Math.round(mbr.reduce((s,m)=>s+(+m.music_bitrate_kbps),0)/mbr.length):0;elMH.innerHTML='⏱ Temps d\'écoute : <span style="color:#f43f5e;font-weight:700">'+pFH+'% FLAC</span> &nbsp;·&nbsp; '+MUSIC.length.toLocaleString('fr')+' pistes · '+alb+' albums · '+art+' artistes'+(avgBr?' · '+avgBr+' kbps moy.':'');}}
+
+    // Effacer et redessiner tous les graphiques
+    _clearAllCharts();
+    window._mChartsInit = false;
+    initDashboard();
+    updateTabVisibility();
+
+  } catch(err) {
+    console.error('rebuildStats error:', err);
+    alert('Erreur dans le calcul des statistiques :\n'+err.message);
+  }
+}
+
+// ===== IMPORT CSV =====
+function importCSV(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const raw = e.target.result;
+      // Normaliser encodage et fins de ligne
+      const text = raw.replace(/^\uFEFF/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+      const allLines = text.split('\n');
+      const lines = allLines.filter(l=>l.trim().length>0);
+      if (lines.length < 2) { alert('CSV vide ou sans données.'); return; }
+
+      // Parser l'en-tête — supporte virgule et point-virgule
+      const sep = lines[0].includes(';') && !lines[0].includes(',') ? ';' : ',';
+      const headers = parseCSVRow(lines[0], sep).map(h=>h.trim().replace(/^"|"$/g,'').trim());
+
+      if (headers.length < 2) { alert('En-tête CSV invalide — vérifiez le séparateur (virgule ou point-virgule attendu).'); return; }
+
+      // Parser toutes les lignes
+      const numericFields = new Set(['year','durationMin','bitrateKbps','seasons','episodes',
+        'totalDurMin','avgEpDurMin',
+        'fileSizeGB','size','audienceRating','rating','userRating','is10bit',
+        'music_bitrate_kbps','music_size_mb','music_disc','music_track','audioChannels','aspectRatio']);
+
+      const data = [];
+      for (let li = 1; li < lines.length; li++) {
+        const line = lines[li].trim();
+        if (!line) continue;
+        const vals = parseCSVRow(line, sep);
+        const obj = {};
+        headers.forEach((h,i)=>{
+          let v = (vals[i]!==undefined) ? vals[i].replace(/^"|"$/g,'').trim() : '';
+          if (numericFields.has(h) && v!=='') {
+            const n = parseFloat(v.replace(',','.'));
+            obj[h] = isNaN(n) ? '' : n;
+          } else {
+            obj[h] = v;
+          }
+        });
+        // Ne garder que les lignes ayant au moins un champ non vide
+        if (Object.values(obj).some(v=>v!==''&&v!==null&&v!==undefined)) data.push(obj);
+      }
+
+      if (data.length === 0) { alert('Aucune ligne de données valide trouvée dans le CSV.'); return; }
+
+      const hasCol = col => headers.some(h=>h.toLowerCase()===col.toLowerCase());
+
+      const films=[], series=[], docs=[], autres=[], concert=[], music=[];
+
+      if (hasCol('library')||hasCol('library_type')||hasCol('libraryType')) {
+        data.forEach(row=>{
+          const cat = detectLibCategory(row);
+          if      (cat==='music')   music.push(row);
+          else if (cat==='series')  series.push(row);
+          else if (cat==='docs')    docs.push(row);
+          else if (cat==='concert') concert.push(row);
+          else if (cat==='films')   films.push(row);
+          else                      autres.push(row);
+        });
+      } else {
+        // Détection par colonnes disponibles
+        let dtype='autres';
+        if      (hasCol('music_artist')||hasCol('music_album')) dtype='music';
+        else if (hasCol('seasons')||hasCol('episodes'))         dtype='series';
+        else if (hasCol('director')||hasCol('videoCodec')||hasCol('resolution')) dtype='films';
+        data.forEach(row=>{
+          if      (dtype==='music')  music.push(row);
+          else if (dtype==='series') series.push(row);
+          else if (dtype==='films')  films.push(row);
+          else                       autres.push(row);
+        });
+      }
+
+      // Agrégation des séries : toujours regrouper par titre
+      // Gère 3 cas :
+      //   A) CSV ligne-par-épisode : episodes absent ou = 1, durationMin = durée d'un épisode, fileSizeGB = taille d'un épisode
+      //   B) CSV pré-agrégé (1 ligne/série) : episodes > 1, durationMin = durée d'UN épisode, fileSizeGB = taille totale ou par épisode
+      //   C) CSV de référence (champ "size" au lieu de "fileSizeGB") : déjà la taille totale de la série
+      if (series.length > 0) {
+        // Détecter le format du CSV
+        const isPreAggregated = series.some(r => +r.episodes > 1);
+        // Nouveau format exporter v2 : contient totalDurMin calculé épisode par épisode
+        const hasNewFormat = series.some(r => r.totalDurMin !== undefined && r.totalDurMin !== '');
+
+        const seriesMap = new Map();
+        series.forEach(row => {
+          const key = (row.title||row.show||'').trim() || '_unknown';
+          const rowSizeGB   = +row.fileSizeGB || +row.size || 0;
+          const rowDurMin   = +row.durationMin || 0;
+          const rowEp       = +row.episodes || 1;
+          const rowTotalDur = +row.totalDurMin || 0; // disponible dans le nouveau format
+          if (!seriesMap.has(key)) {
+            seriesMap.set(key, {
+              title:         row.title||row.show||key,
+              year:          row.year||'',
+              audienceRating:row.audienceRating||row.rating||'',
+              genres:        row.genres||'',
+              library:       row.library||'Séries TV',
+              addedAt:       row.addedAt||'',
+              _epCount:      0,
+              _seasSet:      new Set(),
+              _sizeSumGB:    0,
+              _durSumMin:    0,
+              _resMap:       {},
+              _codecMap:     {},
+              _profileMap:   {},
+              is10bit:       row.is10bit||0,
+            });
+          }
+          const agg = seriesMap.get(key);
+          if (hasNewFormat) {
+            // Exporter v2 : totalDurMin = durée totale réelle, fileSizeGB = poids total réel
+            agg._epCount   += rowEp;
+            agg._durSumMin += rowTotalDur > 0 ? rowTotalDur : rowDurMin * rowEp;
+            agg._sizeSumGB += rowSizeGB;
+            if (row.seasons) { for (let i=1; i<=(+row.seasons||1); i++) agg._seasSet.add(key+'_s'+i); }
+          } else if (isPreAggregated) {
+            // Ancien format : durationMin = durée d'un épisode, fileSizeGB = poids total
+            agg._epCount   += rowEp;
+            agg._durSumMin += rowDurMin * rowEp;
+            agg._sizeSumGB += rowSizeGB;
+            if (row.seasons) { for (let i=1; i<=(+row.seasons||1); i++) agg._seasSet.add(key+'_s'+i); }
+          } else {
+            // Format ligne par épisode
+            agg._epCount   += 1;
+            agg._durSumMin += rowDurMin;
+            agg._sizeSumGB += rowSizeGB;
+            if (row.season || row.seasonNumber) agg._seasSet.add(row.season||row.seasonNumber);
+          }
+          const res = (row.resolution||'').trim();
+          if (res) agg._resMap[res] = (agg._resMap[res]||0)+1;
+          const vc = (row.videoCodec||row.codec||'').trim();
+          if (vc) agg._codecMap[vc] = (agg._codecMap[vc]||0)+1;
+          const vp = (row.videoProfile||'').trim();
+          if (vp) agg._profileMap[vp] = (agg._profileMap[vp]||0)+1;
+          if (+row.is10bit===1) agg.is10bit=1;
+          if ((row.audienceRating||row.rating) && !agg.audienceRating) agg.audienceRating=row.audienceRating||row.rating;
+          if (row.genres && !agg.genres) agg.genres=row.genres;
+          if (row.addedAt && (!agg.addedAt||row.addedAt>agg.addedAt)) agg.addedAt=row.addedAt;
+        });
+        const aggSeries = [];
+        seriesMap.forEach(agg => {
+          const topRes   = Object.entries(agg._resMap).sort((a,b)=>b[1]-a[1])[0];
+          const topCodec = Object.entries(agg._codecMap).sort((a,b)=>b[1]-a[1])[0];
+          const topProf  = Object.entries(agg._profileMap).sort((a,b)=>b[1]-a[1])[0];
+          aggSeries.push({
+            title:          agg.title,
+            year:           agg.year,
+            audienceRating: agg.audienceRating,
+            genres:         agg.genres,
+            library:        agg.library,
+            addedAt:        agg.addedAt,
+            episodes:       agg._epCount,
+            seasons:        agg._seasSet.size > 0 ? agg._seasSet.size : (isPreAggregated ? Math.max(1, Math.round(agg._epCount/8)) : 1),
+            fileSizeGB:     agg._sizeSumGB,
+            durationMin:    agg._durSumMin,
+            resolution:     topRes   ? topRes[0]   : '',
+            videoCodec:     topCodec ? topCodec[0] : '',
+            videoProfile:   topProf  ? topProf[0]  : '',
+            is10bit:        agg.is10bit,
+          });
+        });
+        series.length = 0;
+        aggSeries.forEach(s => series.push(s));
+      }
+
+      if (films.length)   { FILMS=films;   fFiltered=[...films];   initFilmsTab(); }
+      if (series.length)  { SERIES=series; sFiltered=[...series];  initSeriesTab(); }
+      if (docs.length)    { DOCS=docs;     initDocsTab(); }
+      if (autres.length)  { AUTRES=autres; aFiltered=[...autres];  renderAutres(); }
+      if (concert.length) { CONCERT=concert; initConcertsTab(); }
+      if (music.length)   { MUSIC=music;   mFiltered=[...music];   initMusicTab(); }
+
+      rebuildStats();
+
+      const summary=[films.length?films.length+' films':'',series.length?series.length+' séries':'',docs.length?docs.length+' docs':'',autres.length?autres.length+' autres':'',concert.length?concert.length+' concerts':'',music.length?music.length+' pistes musicales':''].filter(Boolean).join(', ');
+      alert('✅ '+data.length+' lignes importées depuis "'+file.name+'"\n'+summary);
+
+    } catch(err) {
+      console.error('Import CSV error:', err);
+      alert('Erreur lors de l\'import :\n'+err.message);
+    }
+  };
+  reader.onerror = () => alert('Impossible de lire le fichier.');
+  reader.readAsText(file, 'UTF-8');
+  input.value = '';
+}
+
+// Parser CSV robuste (gère guillemets, virgules dans champs, séparateur configurable)
+function parseCSVRow(line, sep) {
+  sep = sep || ',';
+  const result = [];
+  let cur = '', inQ = false, i = 0;
+  while (i < line.length) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQ && line[i+1] === '"') { cur += '"'; i += 2; continue; }
+      inQ = !inQ;
+    } else if (ch === sep && !inQ) {
+      result.push(cur); cur = '';
+    } else {
+      cur += ch;
+    }
+    i++;
+  }
+  result.push(cur);
+  return result;
+}
+
+// ===== EXPORT CSV =====
+function exportCSV() {
+  const allData=[...FILMS,...SERIES,...DOCS,...AUTRES,...CONCERT,...MUSIC];
+  if (!allData.length) { alert('Aucune donnée à exporter.'); return; }
+  const colSet=new Set(); allData.forEach(row=>Object.keys(row).forEach(k=>colSet.add(k)));
+  const cols=[...colSet];
+  const esc=v=>{const s=String(v==null?'':v).replace(/"/g,'""');return s.includes(',')||s.includes('"')||s.includes('\n')?`"${s}"`:s;};
+  const csv='\uFEFF'+[cols.join(','),...allData.map(row=>cols.map(c=>esc(row[c])).join(','))].join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='plex_export_'+new Date().toISOString().slice(0,10)+'.csv'; a.click(); URL.revokeObjectURL(url);
+}
+
+// ===== CLEAR DATA =====
+function clearData() {
+  if (!confirm('Supprimer toutes les données CSV chargées ?')) return;
+  FILMS=[]; SERIES=[]; DOCS=[]; AUTRES=[]; CONCERT=[]; MUSIC=[];
+  fFiltered=[]; sFiltered=[]; aFiltered=[]; mFiltered=[];
+  STATS={film_genres:{},top_directors:[],res_counts:{},vc_counts:{},ac_counts:{},films_by_year:{},rat_dist:{},top10_films_best:[],top10_films_worst:[],top10_films_heavy:[],top10_series_best:[],top10_series_worst:[],top10_series_heavy:[],mc_counts:{},music_genres:{}};
+  ['films-tbody','series-tbody','docs-tbody','autres-tbody','concerts-tbody','music-tbody'].forEach(id=>{const el=g(id);if(el)el.innerHTML='';});
+  ['tile-films','tile-series','tile-episodes','tile-music','tile-storage','tile-rating','tile-4k','tile-10bit','tile-flac','tile-codec','tile-medianyear','tile-avgdur','tile-avgsize','tile-lastadded'].forEach(id=>{const el=g(id);if(el)el.textContent='—';});
+  const dc=g('dur-tiles-container'); if(dc) dc.innerHTML='';
+  ['genres-bars','top10-best','top10-worst','top10-heavy','top10-series-best','top10-series-worst','top10-series-heavy'].forEach(id=>{const el=g(id);if(el)el.innerHTML='';});
+  ['total-val-display','total-hours-display','total-3h-display'].forEach(id=>{const el=g(id);if(el)el.textContent='';});
+  const lbl=g('total-badge-label'); if(lbl) lbl.textContent='Durée totale cumulée · aucune donnée importée';
+  const tv=g('total-val-display'); if(tv) tv.textContent='—';
+  document.querySelectorAll('.nav-tab .cnt').forEach(el=>el.textContent='0');
+  _clearAllCharts();
+  window._mChartsInit=false;
+  ['films-genre','series-genre'].forEach(id=>{const sel=g(id);if(sel){while(sel.options.length>1)sel.remove(1);}});
+  const asel=g('music-artist'); if(asel){while(asel.options.length>1)asel.remove(1);}
+  updateTabVisibility();
+}
+
+// ===== CAPTURE PNG =====
+function captureCards() {
+  function doCapture() {
+    const CAPTURE_W = 1920;
+
+    // ---- Sections à masquer pendant la capture ----
+    const HIDE_IDS = [
+      'section-years-ratings',
+      'section-title-classements-films', 'section-classements-films',
+      'section-title-classements-series', 'section-classements-series',
+    ];
+
+    // ---- 1. S'assurer qu'on est sur le dashboard ----
+    const dashTab = g('tab-dashboard');
+    const wasActive = dashTab.classList.contains('active');
+    if (!wasActive) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      dashTab.classList.add('active');
+    }
+
+    // ---- 2. Masquer les sections non voulues ----
+    const hiddenEls = HIDE_IDS.map(id => {
+      const el = g(id);
+      if (!el) return null;
+      const prev = el.style.display;
+      el.style.display = 'none';
+      return { el, prev };
+    }).filter(Boolean);
+
+    // ---- 3. Mémoriser l'état actuel du body ----
+    const origBodyWidth    = document.body.style.width;
+    const origBodyMinWidth = document.body.style.minWidth;
+    const origBodyOverflow = document.body.style.overflow;
+    const origScrollX      = window.scrollX;
+    const origScrollY      = window.scrollY;
+
+    // ---- 4. Forcer la largeur à CAPTURE_W pour que les graphiques soient dans leurs proportions ----
+    document.body.style.width    = CAPTURE_W + 'px';
+    document.body.style.minWidth = CAPTURE_W + 'px';
+    document.body.style.overflow = 'visible';
+    window.scrollTo(0, 0);
+
+    // ---- 5. Construire la topbar synthétique (même style que la vraie) ----
+    const logoSubText = (g('logo-sub') || {}).textContent || '';
+    const visibleTabs = [];
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      if (btn.style.display === 'none') return;
+      const cnt   = btn.querySelector('.cnt');
+      const emoji = btn.textContent.match(/[\p{Emoji_Presentation}\p{Emoji}\uFE0F]/gu)?.[0] || '';
+      const text  = btn.textContent.replace(/[\p{Emoji_Presentation}\p{Emoji}\uFE0F]/gu,'').replace(/\s+/g,' ').trim();
+      // Dans la capture, Dashboard est toujours l'onglet actif
+      const isDashboard = btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('dashboard');
+      visibleTabs.push({ emoji, text: text.replace(/\d+/,'').trim(), count: cnt ? cnt.textContent : null, active: isDashboard });
+    });
+
+    const fakeTopbar = document.createElement('div');
+    fakeTopbar.style.cssText = 'background:#16213e;border-bottom:1px solid #2d3a56;padding:0 20px;display:flex;align-items:center;gap:6px;height:46px;box-sizing:border-box;width:100%;font-family:Segoe UI,system-ui,sans-serif;';
+    fakeTopbar.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;margin-right:10px;flex-shrink:0;">
+        <div style="width:28px;height:28px;background:linear-gradient(135deg,#e5a00d,#f59e0b);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;">🎬</div>
+        <div>
+          <div style="font-weight:700;font-size:13px;line-height:1.2;color:#e2e8f0;">Plex Media Server</div>
+          <div style="color:#8892a4;font-size:10px;">${logoSubText}</div>
+        </div>
+      </div>
+      ${visibleTabs.map(t => `
+        <div style="padding:5px 10px;border-radius:6px;font-size:12px;font-weight:${t.active?'600':'400'};
+             background:${t.active?'#e5a00d':'transparent'};color:${t.active?'#000':'#8892a4'};
+             white-space:nowrap;display:flex;align-items:center;gap:4px;flex-shrink:0;">
+          ${t.emoji} ${t.text}${t.count!=null?` <span style="font-size:10px;opacity:.75;">${t.count}</span>`:''}
+        </div>`).join('')}
+      <div style="margin-left:auto;display:flex;gap:6px;flex-shrink:0;">
+        <div style="background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.4);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;">🗑 Clear</div>
+        <div style="background:rgba(34,197,94,.2);color:#4ade80;border:1px solid rgba(34,197,94,.4);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;">📂 Import</div>
+        <div style="background:rgba(59,130,246,.2);color:#60a5fa;border:1px solid rgba(59,130,246,.4);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;">💾 Export</div>
+        <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;">📸 Capturer PNG</div>
+      </div>`;
+
+    // ---- 6. Construire le wrapper de capture ----
+    const wrapper = document.createElement('div');
+    wrapper.id = '__capture_wrapper__';
+    wrapper.style.cssText = 'position:absolute;top:0;left:0;width:' + CAPTURE_W + 'px;background:#1a1a2e;z-index:-9999;pointer-events:none;';
+    wrapper.appendChild(fakeTopbar);
+
+    // Clone du contenu dashboard
+    const contentClone = dashTab.cloneNode(true);
+    contentClone.style.cssText = 'display:block;padding:14px;box-sizing:border-box;max-width:1800px;margin:0 auto;';
+
+    // ── Forcer les tuiles sur 7 colonnes exactement (comme l'image de référence) ──
+    const tilesRowClone = contentClone.querySelector('.tiles-row');
+    if (tilesRowClone) {
+      tilesRowClone.style.gridTemplateColumns = 'repeat(7, 1fr)';
+    }
+
+    // ── Remplacer chaque canvas par une <img> aux dimensions EXACTES du canvas réel ──
+    // On mesure le canvas dans le DOM vivant pour obtenir les px d'affichage corrects
+    const realCanvases  = dashTab.querySelectorAll('canvas');
+    const cloneCanvases = contentClone.querySelectorAll('canvas');
+    realCanvases.forEach((rc, i) => {
+      if (!cloneCanvases[i]) return;
+      try {
+        // Dimensions "naturelles" du canvas (résolution interne)
+        const natW = rc.width;
+        const natH = rc.height;
+        if (!natW || !natH) return;
+        // Snapshot du contenu graphique
+        const img = document.createElement('img');
+        img.src = rc.toDataURL('image/png');
+        // On laisse la largeur à 100% mais on impose le ratio height/width
+        // via un padding-bottom trick ou simplement aspect-ratio
+        img.style.cssText = [
+          'display:block',
+          'width:100%',
+          'height:auto',
+          'aspect-ratio:' + natW + '/' + natH,
+          'object-fit:contain',
+          'box-sizing:border-box',
+        ].join(';');
+        cloneCanvases[i].replaceWith(img);
+      } catch(e) {}
+    });
+
+    wrapper.appendChild(contentClone);
+    document.body.appendChild(wrapper);
+
+    // ---- 7. Attendre rendu puis capturer ----
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const totalH = wrapper.offsetHeight || wrapper.scrollHeight;
+
+        html2canvas(wrapper, {
+          width:        CAPTURE_W,
+          height:       totalH,
+          scale:        1,
+          backgroundColor: '#1a1a2e',
+          useCORS:      true,
+          allowTaint:   true,
+          logging:      false,
+          windowWidth:  CAPTURE_W,
+          windowHeight: totalH,
+          x: 0,
+          y: 0,
+        }).then(canvas => {
+          // ---- 8. Restaurer l'état ----
+          document.body.removeChild(wrapper);
+          hiddenEls.forEach(({ el, prev }) => { el.style.display = prev; });
+          document.body.style.width    = origBodyWidth;
+          document.body.style.minWidth = origBodyMinWidth;
+          document.body.style.overflow = origBodyOverflow;
+          window.scrollTo(origScrollX, origScrollY);
+          if (!wasActive) {
+            dashTab.classList.remove('active');
+          }
+
+          // ---- 9. Télécharger ----
+          const a = document.createElement('a');
+          a.download = 'plex_dashboard_' + new Date().toISOString().slice(0,10) + '.png';
+          a.href = canvas.toDataURL('image/png');
+          a.click();
+
+        }).catch(err => {
+          document.body.removeChild(wrapper);
+          hiddenEls.forEach(({ el, prev }) => { el.style.display = prev; });
+          document.body.style.width    = origBodyWidth;
+          document.body.style.minWidth = origBodyMinWidth;
+          document.body.style.overflow = origBodyOverflow;
+          window.scrollTo(origScrollX, origScrollY);
+          if (!wasActive) dashTab.classList.remove('active');
+          alert('Erreur capture: ' + err.message);
+        });
+      });
+    });
+  }
+
+  if (window.html2canvas) { doCapture(); }
+  else {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.onload = doCapture;
+    s.onerror = () => alert('html2canvas non disponible (connexion internet requise pour la capture PNG).');
+    document.head.appendChild(s);
+  }
+}
+
+// ===== NAV SCROLL =====
+function scrollNavTabs(dir) {
+  const el = document.getElementById('nav-tabs-container');
+  if (!el) return;
+  el.scrollBy({ left: dir * 160, behavior: 'smooth' });
+  setTimeout(updateNavScrollBtns, 200);
+}
+function updateNavScrollBtns() {
+  const el = document.getElementById('nav-tabs-container');
+  const btnL = document.getElementById('nav-scroll-left');
+  const btnR = document.getElementById('nav-scroll-right');
+  if (!el || !btnL || !btnR) return;
+  btnL.disabled = el.scrollLeft <= 2;
+  btnR.disabled = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+}
+
+// ===== INIT =====
+window.addEventListener('DOMContentLoaded', ()=>{
+  updateTabVisibility();
+  const navEl = document.getElementById('nav-tabs-container');
+  if (navEl) {
+    navEl.addEventListener('scroll', updateNavScrollBtns);
+    setTimeout(updateNavScrollBtns, 100);
+  }
+});
+
+// Redessiner les graphiques quand la taille de la fenêtre change (plein écran, redimensionnement)
+let _resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    if (FILMS.length || SERIES.length || MUSIC.length) {
+      _clearAllCharts();
+      window._mChartsInit = false;
+      initDashboard();
+      if (document.getElementById('tab-musique')?.classList.contains('active')) {
+        initMusicCharts();
+        window._mChartsInit = true;
+      }
+    }
+  }, 150);
+});
+</script>
+</body></html>
