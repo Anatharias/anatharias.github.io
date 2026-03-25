@@ -180,6 +180,27 @@ code{background:rgba(255,255,255,0.07);border-radius:4px;padding:1px 6px;font-fa
 ::-webkit-scrollbar{width:5px} ::-webkit-scrollbar-track{background:var(--bg)} ::-webkit-scrollbar-thumb{background:#1e2d45;border-radius:3px}
 @media(max-width:600px){.hero{padding:36px 20px}.container{padding:28px 16px}.step-block{gap:14px}.form-row{flex-direction:column}.music-mode-grid{grid-template-columns:1fr}}
 
+/* ── LOADING OVERLAY ── */
+.loading-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(10,14,26,0.82);
+  backdrop-filter:blur(6px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.25s;
+}
+.loading-overlay.show{opacity:1;pointer-events:all}
+.loading-spinner-lg{
+  width:52px;height:52px;
+  border:4px solid rgba(167,139,250,0.2);
+  border-top-color:var(--violet);
+  border-radius:50%;
+  animation:spin 0.9s linear infinite;
+}
+.loading-title{font-size:17px;font-weight:700;color:var(--text);text-align:center}
+.loading-sub{font-size:13px;color:var(--muted);text-align:center;max-width:300px;line-height:1.6}
+
 /* ── OAUTH ── */
 .btn-oauth{
   display:inline-flex;align-items:center;gap:10px;
@@ -210,6 +231,13 @@ code{background:rgba(255,255,255,0.07);border-radius:4px;padding:1px 6px;font-fa
 </style>
 </head>
 <body>
+
+<!-- ══ LOADING OVERLAY ══ -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner-lg"></div>
+  <div class="loading-title" id="loadingTitle">Connexion en cours…</div>
+  <div class="loading-sub" id="loadingSub">Découverte de vos serveurs Plex, veuillez patienter.</div>
+</div>
 
 <!-- ══ HERO ══ -->
 <div class="hero">
@@ -413,26 +441,22 @@ code{background:rgba(255,255,255,0.07);border-radius:4px;padding:1px 6px;font-fa
       </div>
       <p class="step-desc" id="step3Desc">Configurez les données à inclure puis lancez l'extraction.</p>
 
-      <div class="card">
-        <div class="card-title">⚙️ Colonnes à inclure — Vidéo (Films / Séries / Docs)</div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:4px">
-          <label class="form-toggle"><input type="checkbox" id="optRating" checked><div class="toggle-track"></div><span class="toggle-label">Notes (audience &amp; critique)</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optUserRating" checked><div class="toggle-track"></div><span class="toggle-label">Note personnelle</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optGenres" checked><div class="toggle-track"></div><span class="toggle-label">Genres</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optDirector" checked><div class="toggle-track"></div><span class="toggle-label">Réalisateur / Créateurs</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optActors" checked><div class="toggle-track"></div><span class="toggle-label">Acteurs (top 5)</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optMedia" checked><div class="toggle-track"></div><span class="toggle-label">Résolution / Codec / Profil</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optAudio" checked><div class="toggle-track"></div><span class="toggle-label">Codec audio &amp; canaux</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optSize" checked><div class="toggle-track"></div><span class="toggle-label">Taille fichier (GB)</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optDuration" checked><div class="toggle-track"></div><span class="toggle-label">Durée (minutes)</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optSummary"><div class="toggle-track"></div><span class="toggle-label">Synopsis</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optDate" checked><div class="toggle-track"></div><span class="toggle-label">Date d'ajout</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optTagline"><div class="toggle-track"></div><span class="toggle-label">Tagline</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optCountry"><div class="toggle-track"></div><span class="toggle-label">Pays d'origine</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optAspect" checked><div class="toggle-track"></div><span class="toggle-label">Ratio d'image</span></label>
-          <label class="form-toggle"><input type="checkbox" id="optBitrate" checked><div class="toggle-track"></div><span class="toggle-label">Bitrate vidéo (Kbps)</span></label>
-        </div>
-      </div>
+      <!-- Hidden checkboxes — valeurs fixes, non modifiables par l'utilisateur -->
+      <input type="checkbox" id="optRating"     checked style="display:none">
+      <input type="checkbox" id="optUserRating" checked style="display:none">
+      <input type="checkbox" id="optGenres"     checked style="display:none">
+      <input type="checkbox" id="optDirector"   checked style="display:none">
+      <input type="checkbox" id="optActors"     checked style="display:none">
+      <input type="checkbox" id="optMedia"      checked style="display:none">
+      <input type="checkbox" id="optAudio"      checked style="display:none">
+      <input type="checkbox" id="optSize"       checked style="display:none">
+      <input type="checkbox" id="optDuration"   checked style="display:none">
+      <input type="checkbox" id="optSummary"          style="display:none">
+      <input type="checkbox" id="optDate"       checked style="display:none">
+      <input type="checkbox" id="optTagline"          style="display:none">
+      <input type="checkbox" id="optCountry"          style="display:none">
+      <input type="checkbox" id="optAspect"     checked style="display:none">
+      <input type="checkbox" id="optBitrate"    checked style="display:none">
 
       <div class="tip tip-green" style="margin-top:6px">
         <span class="tip-icon">🎵</span>
@@ -626,6 +650,8 @@ async function pollPin() {
       if (_oauthPopup && !_oauthPopup.closed) _oauthPopup.close();
       document.getElementById('oauthMsg').textContent = '✓ Autorisé ! Découverte de vos serveurs…';
       STATE.token = data.authToken;
+      // Fermer le panneau d'attente OAuth et afficher l'overlay de chargement
+      document.getElementById('oauthState').style.display = 'none';
       await discoverAndConnectServers();
     }
     if (data.expiresAt && new Date(data.expiresAt) < new Date()) {
@@ -653,7 +679,17 @@ function showOAuthErr(msg) {
   el.classList.add('show');
 }
 
+function showLoading(title, sub) {
+  document.getElementById('loadingTitle').textContent = title || 'Chargement…';
+  document.getElementById('loadingSub').textContent   = sub  || 'Veuillez patienter.';
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('show');
+}
+
 async function discoverAndConnectServers() {
+  showLoading('Découverte des serveurs…', 'Récupération de la liste de vos serveurs Plex, veuillez patienter.');
   try {
     const resp = await fetch(
       'https://plex.tv/api/v2/resources?includeHttps=1&includeRelay=1&includeIPv6=0',
@@ -674,6 +710,7 @@ async function discoverAndConnectServers() {
       throw new Error('Impossible de joindre un serveur Plex. Vérifiez que l\'accès distant est activé.');
     }
   } catch(err) {
+    hideLoading();
     cancelOAuth();
     showOAuthErr(err.message);
   }
@@ -688,20 +725,30 @@ async function connectOAuthServer(server) {
     return 0;
   });
 
-  // Si hébergé hors localhost, on ne garde que les relays (CORS)
+  // Depuis GitHub Pages (ou tout hôte non-local non-file:), on essaie d'abord
+  // les relays Plex (qui supportent CORS), puis les connexions HTTPS directes
+  // (les serveurs Plex modernes autorisent CORS pour les origines plex.tv et GitHub).
+  // On NE filtre plus uniquement sur relay : si le relay échoue, on tente HTTPS direct.
   const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
-  if (!isLocal) conns = conns.filter(c => c.relay);
-  if (!conns.length) throw new Error('Aucune connexion relay disponible pour ce serveur.');
+  if (!isLocal) {
+    // Priorité : relays d'abord, puis HTTPS, on retire HTTP non-relay
+    conns = conns.filter(c => c.relay || c.protocol === 'https');
+  }
+  if (!conns.length) throw new Error('Aucune connexion disponible (relay ou HTTPS) pour ce serveur.');
+
+  showLoading('Connexion au serveur…', `Test des adresses disponibles pour « ${server.name} »…`);
 
   let connectedUri = null;
   for (const c of conns) {
     try {
-      const test = await fetch(`${c.uri}/library/sections?X-Plex-Token=${STATE.token}`,
-        { headers: plexH(), signal: AbortSignal.timeout(8000) });
+      // Inclure le token dans l'URL pour les relays (requis par le relay Plex)
+      const testUrl = `${c.uri}/library/sections?X-Plex-Token=${STATE.token}`;
+      const test = await fetch(testUrl,
+        { headers: plexH(), signal: AbortSignal.timeout(10000) });
       if (test.ok) { connectedUri = c.uri; break; }
     } catch { /* try next */ }
   }
-  if (!connectedUri) throw new Error('Impossible de joindre le serveur via le relay Plex.');
+  if (!connectedUri) throw new Error('Impossible de joindre le serveur Plex (ni via relay, ni en HTTPS direct). Vérifiez que l\'accès distant est activé dans les paramètres de votre serveur Plex.');
 
   // Remplir les champs du formulaire serveur avec l'URI trouvée
   const url = new URL(connectedUri);
@@ -713,7 +760,7 @@ async function connectOAuthServer(server) {
   onHostInput();
 
   // Maintenant charger les bibliothèques directement
-  document.getElementById('oauthMsg').textContent = `✓ Connecté à ${server.name} — chargement des bibliothèques…`;
+  showLoading('Chargement des bibliothèques…', `Connecté à « ${server.name} » — récupération des bibliothèques en cours…`);
 
   const resp = await fetch(`${connectedUri}/library/sections?X-Plex-Token=${STATE.token}`, { headers: plexH() });
   if (!resp.ok) throw new Error('Erreur lors du chargement des bibliothèques.');
@@ -721,9 +768,14 @@ async function connectOAuthServer(server) {
   const dirs = data.MediaContainer?.Directory || [];
   STATE.allLibraries = dirs;
 
-  // Masquer le wizard OAuth
+  // Masquer le wizard OAuth et l'overlay
+  hideLoading();
   document.getElementById('oauthState').style.display = 'none';
   document.getElementById('btnOAuth').style.display = 'none';
+
+  // Masquer le bouton "Tester la connexion" (méthode 1 a réussi, méthode 2 inutile)
+  const testBtn = document.getElementById('testConnBtn');
+  if (testBtn) testBtn.style.display = 'none';
 
   // Afficher le résultat dans la section connexion de l'étape 2
   setConnSt('ok', `✓ ${server.name} — ${dirs.length} bibliothèque(s) via OAuth`);
@@ -1106,7 +1158,7 @@ async function startFullExport() {
       setProgress(Math.round(loaded/Math.max(totalEstimate,1)*85), `Musique ${i+1}/${musicLibs.length}: ${lib.title}…`, Math.round(loaded/Math.max(totalEstimate,1)*85));
       let start = 0, libTotal = null;
       while (true) {
-        const url = `${serverUrl()}/library/sections/${lib.key}/all?X-Plex-Token=${STATE.token}&type=${typeCode}&X-Plex-Container-Start=${start}&X-Plex-Container-Size=${BATCH}`;
+        const url = `${serverUrl()}/library/sections/${lib.key}/all?X-Plex-Token=${STATE.token}&type=${typeCode}&X-Plex-Container-Start=${start}&X-Plex-Container-Size=${BATCH}&includeExternalMedia=1`;
         const resp = await fetch(url, { headers: plexH() });
         if (!resp.ok) throw new Error(`HTTP ${resp.status} — "${lib.title}"`);
         const data = await resp.json();
@@ -1297,6 +1349,14 @@ function generateUnifiedCSV(videoRows, musicRows, otherRows) {
     const sizeMb= part.size ? (parseInt(part.size)/(1024*1024)).toFixed(2) : '';
     const added = fmtDate(item.addedAt);
 
+    // Année : pour une piste, Plex renvoie rarement item.year — on prend parentYear (année de l'album)
+    // puis grandparentYear (année de l'artiste) en fallback
+    const musicYear = item.year || item.parentYear || item.grandparentYear || '';
+
+    // Note : audienceRating (note audience Plex) ou rating (note critique)
+    const musicAudienceRating = item.audienceRating ?? item.rating ?? '';
+    const musicRating         = item.rating ?? '';
+
     // music-specific fields
     let m_artist='', m_album='', m_disc='', m_track='', m_label='', m_bitrate='';
     if (mode==='track') {
@@ -1316,8 +1376,10 @@ function generateUnifiedCSV(videoRows, musicRows, otherRows) {
     }
 
     const libLbl = mode==='track'?'Musique - Pistes':mode==='album'?'Musique - Albums':'Musique - Artistes';
-    const row = [cs(libTitle), cs(libLbl), cs(item.title), item.year??'', ''];
-    if (opts.rating)     row.push(item.rating??'', item.rating??'');
+    const row = [cs(libTitle), cs(libLbl), cs(item.title), musicYear, ''];
+    // Note : toujours incluse pour la musique (indépendamment des opts vidéo)
+    if (opts.rating)     row.push(musicAudienceRating, musicRating);
+    else                 row.push(musicAudienceRating, musicRating); // forcé
     if (opts.userRating) row.push(item.userRating??'');
     if (opts.genres)     row.push(cs(genres));
     if (opts.director)   row.push('','','');
