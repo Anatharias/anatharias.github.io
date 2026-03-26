@@ -170,7 +170,7 @@ select.form-input option{background:#161c2e}
 .copy-btn.copied{background:rgba(52,211,153,0.15);color:var(--green);border-color:rgba(52,211,153,0.3)}
 
 /* ── CSV PREVIEW ── */
-.csv-prev{background:rgba(0,0,0,0.45);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:10px;font-family:'Courier New',monospace;font-size:11px;color:var(--muted);max-height:130px;overflow-y:auto;line-height:1.55;white-space:pre;display:none}
+.csv-prev{background:rgba(0,0,0,0.45);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:10px;font-family:'Courier New',monospace;font-size:11px;color:var(--muted);max-height:130px;overflow:auto;line-height:1.55;white-space:pre;display:none;max-width:100%;box-sizing:border-box}
 .csv-prev.show{display:block}
 
 /* ── RESULT BOX ── */
@@ -1385,7 +1385,7 @@ body.dashboard-mode #dashboard-view { display: block; }
       <div id="step-meta"     style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-meta-icon"    style="font-size:13px;">⬜</span> Envoi du profil &amp; statistiques</div>
       <div id="step-films"    style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-films-icon"   style="font-size:13px;">⬜</span> Envoi des films</div>
       <div id="step-series"   style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-series-icon"  style="font-size:13px;">⬜</span> Envoi des séries</div>
-      <div id="step-music"    style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-music-icon"   style="font-size:13px;">⬜</span> Envoi de la musique</div>
+      <div id="step-music"    style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-music-icon"   style="font-size:13px;">⬜</span> Envoi de la musique <span style="color:#fbbf24;font-style:italic;">(opération plus longue, merci de patienter…)</span></div>
       <div id="step-done"     style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-done-icon"    style="font-size:13px;">⬜</span> Finalisation</div>
     </div>
     <div id="gh-upload-actions" style="display:none;margin-top:18px">
