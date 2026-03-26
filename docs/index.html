@@ -4,6 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plex Exporter & Dashboard</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDm6O5HbbED0WheExVkIunlXl4KWY3jDMg",
+    authDomain: "plexlibrary-d2ff7.firebaseapp.com",
+    databaseURL: "https://plexlibrary-d2ff7-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "plexlibrary-d2ff7",
+    storageBucket: "plexlibrary-d2ff7.firebasestorage.app",
+    messagingSenderId: "884981667498",
+    appId: "1:884981667498:web:bfa6da87ff76ab048022d3",
+    measurementId: "G-5BX60Y46D9"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const _db = firebase.firestore();
+</script>
 
 <style>
 /* ════════ EXPORTEUR ════════ */
@@ -175,6 +191,11 @@ code{background:rgba(255,255,255,0.07);border-radius:4px;padding:1px 6px;font-fa
 .err-msg{font-size:12px;color:var(--red);margin-top:5px;display:none}
 .err-msg.show{display:block}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes jsonBlink{
+  0%,100%{background:rgba(168,85,247,.2);box-shadow:none;transform:scale(1)}
+  50%{background:rgba(168,85,247,.55);box-shadow:0 0 12px rgba(168,85,247,.7),0 0 24px rgba(168,85,247,.35);transform:scale(1.04)}
+}
+.btn-json-blink{animation:jsonBlink 1.4s ease-in-out infinite!important}
 .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,0.1);border-top-color:currentColor;border-radius:50%;animation:spin 0.7s linear infinite}
 .footer{background:var(--bg2);border-top:1px solid var(--border);padding:24px 40px;text-align:center;font-size:13px;color:var(--muted)}
 .footer a{color:var(--violet);text-decoration:none}
@@ -243,12 +264,14 @@ code{background:rgba(255,255,255,0.07);border-radius:4px;padding:1px 6px;font-fa
 :root{--bg:#1a1a2e;--bg2:#16213e;--card:#1e2a45;--card2:#243050;--border:#2d3a56;--text:#e2e8f0;--text2:#8892a4;--accent:#e5a00d;--teal:#00b4c8;--purple:#a855f7;--green:#22c55e;--red:#ef4444;--pink:#ec4899;--blue:#3b82f6;--orange:#f97316;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;min-height:100vh;}
-.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;gap:8px;height:46px;position:sticky;top:0;z-index:100;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;display:flex;flex-direction:column;position:sticky;top:0;z-index:100;}
+.topbar-row1{display:flex;align-items:center;gap:8px;height:46px;width:100%;}
+.topbar-row2{display:flex;align-items:center;gap:2px;padding:4px 0;border-top:1px solid rgba(255,255,255,.04);width:100%;}
 .logo{display:flex;align-items:center;gap:8px;margin-right:12px;}
 .logo-icon{width:28px;height:28px;background:linear-gradient(135deg,#e5a00d,#f59e0b);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;}
 .logo-text{font-weight:700;font-size:13px;line-height:1.2;}
 .logo-sub{color:var(--text2);font-size:10px;}
-.nav-tabs-wrapper{display:flex;align-items:center;flex:1;min-width:0;gap:2px;}
+.nav-tabs-wrapper{display:flex;align-items:center;flex:1;min-width:0;gap:2px;width:100%;}
 .nav-scroll-btn{background:none;border:none;color:var(--text2);cursor:pointer;padding:2px 5px;border-radius:5px;font-size:15px;line-height:1;flex-shrink:0;transition:color .15s,background .15s;}
 .nav-scroll-btn:hover{color:var(--text);background:var(--card);}
 .nav-scroll-btn:disabled{opacity:.2;cursor:default;}
@@ -386,6 +409,31 @@ tbody td{padding:5px 7px;font-size:12px;}
 .discord-name-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(88,101,242,.15);border:1px solid rgba(88,101,242,.3);border-radius:5px;padding:1px 7px;font-size:10px;color:#7289da;font-weight:600;margin-top:2px;}
 
 
+/* ════════ MODALE GITHUB PAT ════════ */
+#gh-pat-modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,14,26,.85);backdrop-filter:blur(4px);z-index:10001;align-items:center;justify-content:center;}
+#gh-pat-modal-overlay.visible{display:flex;}
+.gh-modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:30px 34px;width:480px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.7);}
+.gh-modal-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.gh-modal-icon{width:36px;height:36px;background:linear-gradient(135deg,#24292e,#444d56);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.gh-modal-title{font-size:15px;font-weight:700;color:var(--text);}
+.gh-modal-desc{font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:16px;padding:10px 12px;background:rgba(36,41,46,.6);border:1px solid rgba(255,255,255,.08);border-radius:8px;}
+.gh-modal-desc a{color:#58a6ff;text-decoration:none;}
+.gh-modal-desc a:hover{text-decoration:underline;}
+.gh-modal-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.gh-modal-input{width:100%;background:var(--card2);border:2px solid var(--border);border-radius:9px;padding:10px 14px;color:var(--text);font-size:13px;font-family:'Courier New',monospace;outline:none;transition:border-color .2s;}
+.gh-modal-input:focus{border-color:#58a6ff;}
+.gh-modal-input::placeholder{color:var(--text2);}
+.gh-modal-hint{font-size:10px;color:var(--text2);margin-top:5px;line-height:1.5;}
+.gh-modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;align-items:center;}
+.gh-btn-primary{background:linear-gradient(135deg,#238636,#2ea043);color:#fff;border:none;border-radius:8px;padding:9px 20px;cursor:pointer;font-size:13px;font-weight:700;transition:opacity .15s;}
+.gh-btn-primary:hover{opacity:.88;}
+.gh-btn-secondary{background:none;border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:9px 16px;cursor:pointer;font-size:13px;transition:all .15s;}
+.gh-btn-secondary:hover{color:var(--text);border-color:var(--text2);}
+.gh-status{font-size:12px;margin-right:auto;font-weight:600;}
+.gh-status.ok{color:var(--green);}.gh-status.err{color:var(--red);}.gh-status.load{color:var(--accent);}
+/* Bouton config PAT dans topbar */
+.gh-config-btn{background:rgba(88,166,255,.12);color:#58a6ff;border:1px solid rgba(88,166,255,.3);padding:4px 9px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;}
+.gh-config-btn:hover{background:rgba(88,166,255,.22);}
 
 #exporter-view { display: block; }
 #dashboard-view { display: none; }
@@ -694,32 +742,159 @@ body.dashboard-mode #dashboard-view { display: block; }
 ══════════════════════════════════════════ -->
 <div id="dashboard-view">
 <div class="topbar">
-  <div class="logo">
-    <div class="logo-icon">🎬</div>
-    <div>
-      <div class="logo-text">Plex Media Server</div>
-      <div class="logo-sub" id="logo-sub">11 093 entrées · 13.7 TB · Mar 2026</div>
+  <!-- LIGNE 1 : Logo + boutons d'action -->
+  <div class="topbar-row1">
+    <button id="btn-back-exporteur" onclick="document.body.classList.remove('dashboard-mode');document.title='Plex Exporter &amp; Dashboard';" title="Revenir à l'exporteur Plex" style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,rgba(109,40,217,0.35),rgba(139,92,246,0.2));border:1px solid rgba(139,92,246,0.55);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;color:#a78bfa;cursor:pointer;font-family:inherit;transition:all .18s;white-space:nowrap;flex-shrink:0;letter-spacing:.01em;" onmouseover="this.style.background='linear-gradient(135deg,rgba(109,40,217,0.55),rgba(139,92,246,0.35))';this.style.borderColor='rgba(139,92,246,0.8)';this.style.transform='translateY(-1px)'" onmouseout="this.style.background='linear-gradient(135deg,rgba(109,40,217,0.35),rgba(139,92,246,0.2))';this.style.borderColor='rgba(139,92,246,0.55)';this.style.transform=''">&larr; Exporteur</button>
+    <div class="logo" style="margin-left:4px;">
+      <div class="logo-icon">🎬</div>
+      <div>
+        <div class="logo-text">Plex Media Server</div>
+        <div class="logo-sub" id="logo-sub"></div>
+      </div>
+    </div>
+    <div style="flex:1;"></div>
+    <button class="action-btn clear-btn" onclick="clearData()" title="Effacer toutes les données chargées">🗑 Clear</button>
+    <button class="action-btn import-btn" onclick="document.getElementById('import-file-input').click()" title="Importer un fichier CSV ou JSON Profil">📂 Import</button>
+    <input type="file" id="import-file-input" accept=".csv,.json" style="display:none" onchange="handleImportFile(this)">
+    <input type="file" id="csv-import-input" accept=".csv" style="display:none" onchange="importCSV(this)">
+    <button class="action-btn export-btn" onclick="exportCSV()" title="Exporter les données actuelles au format CSV">💾 Export CSV</button>
+    <button class="action-btn btn-json-blink" style="background:rgba(168,85,247,.2);color:#c084fc;border:1px solid rgba(168,85,247,.4);" onclick="exportProfileJSON()" title="Exporter le profil JSON enrichi pour la communauté">🔗 Export Profil JSON</button><button onclick="openProfileInfoModal()" title="Informations sur le profil JSON" style="background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.4);color:#c084fc;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:800;cursor:pointer;padding:0;line-height:1;display:inline-flex;align-items:center;justify-content:center;margin-left:4px;flex-shrink:0;transition:all 0.2s;" onmouseover="this.style.background='rgba(168,85,247,.35)'" onmouseout="this.style.background='rgba(168,85,247,.15)'">i</button>
+    <button class="capture-btn" onclick="captureCards()" title="Capturer le dashboard en image PNG">📸 Capturer PNG</button>
+    <button class="action-btn" style="background:rgba(250,204,21,.13);color:#facc15;border:1px solid rgba(250,204,21,.35);font-size:11px;" onclick="openInfoModal()" title="Aide : description de chaque bouton">ℹ️ Information</button>
+  </div>
+  <!-- LIGNE 2 : Onglets de navigation -->
+  <div class="topbar-row2">
+    <div class="nav-tabs-wrapper">
+      <button class="nav-scroll-btn" id="nav-scroll-left" onclick="scrollNavTabs(-1)" title="Défiler à gauche">&#8249;</button>
+      <div class="nav-tabs" id="nav-tabs-container">
+        <button class="nav-tab active" onclick="showTab('dashboard',this)">&#128202; Dashboard</button>
+        <button class="nav-tab" onclick="showTab('films',this)" style="display: none;">&#127916; Films <span class="cnt">0</span></button>
+        <button class="nav-tab" onclick="showTab('series',this)" style="display: none;">&#128250; S&#233;ries <span class="cnt">0</span></button>
+        <button class="nav-tab" onclick="showTab('docs',this)" style="display: none;">&#128193; Docs <span class="cnt">0</span></button>
+        <button class="nav-tab" onclick="showTab('autres',this)" style="display: none;">&#128194; Autres Docs <span class="cnt">0</span></button>
+        <button class="nav-tab" onclick="showTab('concerts',this)" style="display: none;">&#127925; Concerts <span class="cnt">0</span></button>
+        <button class="nav-tab" onclick="showTab('musique',this)" style="display: none;">&#127928; Musique <span class="cnt">0</span></button>
+      </div>
+      <button class="nav-scroll-btn" id="nav-scroll-right" onclick="scrollNavTabs(1)" title="D&#233;filer &#224; droite">&#8250;</button>
     </div>
   </div>
-  <div class="nav-tabs-wrapper">
-    <button class="nav-scroll-btn" id="nav-scroll-left" onclick="scrollNavTabs(-1)" title="Défiler à gauche">&#8249;</button>
-    <div class="nav-tabs" id="nav-tabs-container">
-      <button class="nav-tab active" onclick="showTab('dashboard',this)">&#128202; Dashboard</button>
-      <button class="nav-tab" onclick="showTab('films',this)" style="display: none;">&#127916; Films <span class="cnt">0</span></button>
-      <button class="nav-tab" onclick="showTab('series',this)" style="display: none;">&#128250; S&#233;ries <span class="cnt">0</span></button>
-      <button class="nav-tab" onclick="showTab('docs',this)" style="display: none;">&#128193; Docs <span class="cnt">0</span></button>
-      <button class="nav-tab" onclick="showTab('autres',this)" style="display: none;">&#128194; Autres Docs <span class="cnt">0</span></button>
-      <button class="nav-tab" onclick="showTab('concerts',this)" style="display: none;">&#127925; Concerts <span class="cnt">0</span></button>
-      <button class="nav-tab" onclick="showTab('musique',this)" style="display: none;">&#127928; Musique <span class="cnt">0</span></button>
+
+<!-- ===== MODAL INFO PROFIL JSON ===== -->
+<div id="profile-info-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div style="background:#1a1a2e;border:1px solid rgba(168,85,247,.4);border-radius:14px;max-width:520px;width:90%;padding:28px 28px 22px;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.6);font-family:inherit;color:#e2e8f0;max-height:90vh;overflow-y:auto;">
+    <button onclick="closeProfileInfoModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px;transition:color .2s;" onmouseover="this.style.color='#e2e8f0'" onmouseout="this.style.color='#94a3b8'">✕</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+      <span style="background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.4);border-radius:50%;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#c084fc;flex-shrink:0;">i</span>
+      <span style="font-size:16px;font-weight:700;color:#c084fc;">Que contient le fichier Profil JSON ?</span>
     </div>
-    <button class="nav-scroll-btn" id="nav-scroll-right" onclick="scrollNavTabs(1)" title="D&#233;filer &#224; droite">&#8250;</button>
+
+    <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:12px 14px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:#f87171;margin-bottom:6px;">⚠️ Données directement nominatives présentes</div>
+      <div style="font-size:12px;color:#fca5a5;line-height:1.6;">
+        Ces informations permettent d'identifier l'utilisateur de façon explicite :
+      </div>
+      <ul style="font-size:12px;color:#e2e8f0;margin:8px 0 0 0;padding-left:18px;line-height:1.8;">
+        <li><strong style="color:#c084fc;">Nom d'utilisateur Plex</strong> — champ <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:11px;">"user"</code> (ex. <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:11px;">"user": "Anatharias"</code>)</li>
+        <li><strong style="color:#7289da;">Nom d'utilisateur Discord</strong> — champ <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:11px;">"discord_name"</code> (ex. <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:11px;">"discord_name": "Anatharias"</code>)</li>
+        <li><strong style="color:#94a3b8;">Nom du fichier</strong> — contient le pseudo et la date de génération (ex. <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:3px;font-size:11px;">anatharias_20260325.json</code>)</li>
+      </ul>
+    </div>
+
+    <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:12px 14px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:#4ade80;margin-bottom:6px;">✅ Ce qui n'est PAS présent dans le fichier</div>
+      <ul style="font-size:12px;color:#bbf7d0;margin:0;padding-left:18px;line-height:1.8;">
+        <li>Aucune adresse IP</li>
+        <li>Aucun email</li>
+        <li>Aucun identifiant technique Plex (UUID de compte, token, etc.)</li>
+        <li>Aucune donnée de localisation</li>
+      </ul>
+    </div>
+
+    <div style="background:rgba(114,137,218,.1);border:1px solid rgba(114,137,218,.35);border-radius:8px;padding:12px 14px;margin-bottom:18px;">
+      <div style="font-size:12px;font-weight:700;color:#7289da;margin-bottom:6px;">💬 Pourquoi le pseudo Discord est indispensable</div>
+      <div style="font-size:12px;color:#c7d0f8;line-height:1.7;">
+        Le nom d'utilisateur Discord doit obligatoirement être renseigné dans votre profil pour que la communauté puisse vous identifier lors des échanges.<br><br>
+        Sans lui, il est <strong>impossible de savoir à qui adresser une demande de partage réciproque</strong> — c'est l'unique lien entre votre profil Plex partagé et votre identité sur notre serveur Discord.<br><br>
+        👉 <strong style="color:#7289da;">Renseignez votre pseudo Discord</strong> avant d'exporter votre profil JSON pour le partager avec la communauté.
+      </div>
+    </div>
+
   </div>
-  <button class="action-btn clear-btn" onclick="clearData()">🗑 Clear</button>
-  <button class="action-btn import-btn" onclick="document.getElementById('csv-import-input').click()">📂 Import</button>
-  <input type="file" id="csv-import-input" accept=".csv" style="display:none" onchange="importCSV(this)">
-  <button class="action-btn export-btn" onclick="exportCSV()">💾 Export CSV</button>
-  <button class="action-btn" style="background:rgba(168,85,247,.2);color:#c084fc;border:1px solid rgba(168,85,247,.4);" onclick="exportProfileJSON()">🔗 Export Profil JSON</button>
-  <button class="capture-btn" onclick="captureCards()">📸 Capturer PNG</button>
+</div>
+
+<!-- ===== MODAL INFORMATION BOUTONS ===== -->
+<div id="info-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);backdrop-filter:blur(5px);align-items:center;justify-content:center;">
+  <div style="background:#1a1a2e;border:1px solid rgba(250,204,21,.35);border-radius:16px;max-width:600px;width:94%;padding:28px 28px 22px;position:relative;box-shadow:0 12px 50px rgba(0,0,0,.7);font-family:inherit;color:#e2e8f0;max-height:92vh;overflow-y:auto;">
+    <button onclick="closeInfoModal()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;line-height:1;padding:2px 7px;border-radius:4px;transition:color .2s;" onmouseover="this.style.color='#e2e8f0'" onmouseout="this.style.color='#94a3b8'">✕</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+      <span style="font-size:22px;">ℹ️</span>
+      <span style="font-size:17px;font-weight:800;color:#facc15;">Guide des boutons du tableau de bord</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+
+      <div style="background:rgba(167,139,250,.09);border:1px solid rgba(167,139,250,.3);border-radius:9px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:18px;flex-shrink:0;">← Exporteur</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:4px;">Retourner à l'exporteur</div>
+          <div style="font-size:12px;color:#c4b5fd;line-height:1.6;">Revient à l'interface principale de l'exporteur Plex, là où vous pouvez connecter votre serveur et lancer un export CSV.</div>
+        </div>
+      </div>
+
+      <div style="background:rgba(239,68,68,.09);border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:18px;flex-shrink:0;">🗑 Clear</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#f87171;margin-bottom:4px;">Effacer toutes les données</div>
+          <div style="font-size:12px;color:#fca5a5;line-height:1.6;">Supprime toutes les données chargées en mémoire (films, séries, musique, docs). Le dashboard revient à son état vide. <strong style="color:#fecaca;">Attention : irréversible sans re-importation.</strong></div>
+        </div>
+      </div>
+
+      <div style="background:rgba(34,197,94,.09);border:1px solid rgba(34,197,94,.3);border-radius:9px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:18px;flex-shrink:0;">📂 Import</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#4ade80;margin-bottom:4px;">Importer un fichier CSV ou JSON</div>
+          <div style="font-size:12px;color:#bbf7d0;line-height:1.6;">Ouvre le sélecteur de fichier pour charger vos données dans le dashboard. Accepte deux formats :<br>
+            • <strong>CSV</strong> — export complet généré par l'exporteur Plex (un nom Discord vous sera demandé)<br>
+            • <strong>JSON Profil</strong> — fichier de profil exporté par ce dashboard
+          </div>
+        </div>
+      </div>
+
+      <div style="background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.3);border-radius:9px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:18px;flex-shrink:0;">💾 Export CSV</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#60a5fa;margin-bottom:4px;">Télécharger les données au format CSV</div>
+          <div style="font-size:12px;color:#bfdbfe;line-height:1.6;">Re-télécharge les données actuellement chargées sous forme de fichier CSV. Utile pour sauvegarder l'état courant ou l'ouvrir dans un tableur (Excel, Google Sheets, etc.).</div>
+        </div>
+      </div>
+
+      <div style="background:rgba(168,85,247,.09);border:1px solid rgba(168,85,247,.3);border-radius:9px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:18px;flex-shrink:0;">🔗 Export Profil JSON</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#c084fc;margin-bottom:4px;">Générer et partager votre profil enrichi</div>
+          <div style="font-size:12px;color:#e9d5ff;line-height:1.6;">Crée un fichier JSON compact contenant votre bibliothèque complète + des statistiques détaillées (résolutions, codecs, notes, durées, stockage, genres dominants…). Ce fichier est automatiquement uploadé sur Firebase pour être partagé avec la communauté. Cliquez sur le bouton <strong style="color:#c084fc;">i</strong> à côté pour en savoir plus sur les données incluses.</div>
+        </div>
+      </div>
+
+      <div style="background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.3);border-radius:9px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:18px;flex-shrink:0;">📸 Capturer PNG</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#a5b4fc;margin-bottom:4px;">Sauvegarder le dashboard en image</div>
+          <div style="font-size:12px;color:#c7d2fe;line-height:1.6;">Génère une capture d'écran PNG des tuiles et graphiques principaux du dashboard. Pratique pour partager un aperçu visuel de votre bibliothèque sur Discord ou les réseaux sociaux.</div>
+        </div>
+      </div>
+
+      <div style="background:rgba(250,204,21,.09);border:1px solid rgba(250,204,21,.3);border-radius:9px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:18px;flex-shrink:0;">ℹ️ Information</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#facc15;margin-bottom:4px;">Ce bouton — l'aide contextuelle</div>
+          <div style="font-size:12px;color:#fef9c3;line-height:1.6;">Affiche cette fenêtre d'aide qui décrit en détail le rôle de chaque bouton présent dans la barre de navigation du dashboard.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 </div>
 <div id="sort-progress-bar"><div id="sort-progress-fill"></div></div>
 <div class="content">
@@ -1186,6 +1361,38 @@ body.dashboard-mode #dashboard-view { display: block; }
     </div>
   </div>
 </div>
+</div>
+
+<!-- MODALE PROGRESSION UPLOAD FIREBASE -->
+<div id="gh-upload-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,14,26,.85);backdrop-filter:blur(4px);z-index:10002;align-items:center;justify-content:center;">
+  <div class="gh-modal-box" style="text-align:center;padding:36px 40px;min-width:420px;">
+    <div style="font-size:42px;margin-bottom:14px" id="gh-upload-icon">⏳</div>
+    <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px" id="gh-upload-title">Upload en cours…</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:14px" id="gh-upload-msg">Préparation des données…</div>
+    <!-- Barre de progression -->
+    <div id="gh-upload-progress-wrap" style="margin-bottom:10px;">
+      <div style="background:#2d3a56;border-radius:8px;height:8px;overflow:hidden;margin-bottom:6px;">
+        <div id="gh-upload-bar" style="height:100%;border-radius:8px;background:linear-gradient(90deg,#a855f7,#e5a00d,#22c55e);transition:width .4s ease;width:0%;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:#8892a4;">
+        <span id="gh-upload-step-label">Initialisation…</span>
+        <span id="gh-upload-pct">0 %</span>
+      </div>
+    </div>
+    <!-- Étapes détaillées -->
+    <div id="gh-upload-steps" style="text-align:left;margin:12px 0 0 0;display:flex;flex-direction:column;gap:5px;">
+      <div id="step-prepare"  style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-prepare-icon" style="font-size:13px;">⬜</span> Compression et préparation des données</div>
+      <div id="step-meta"     style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-meta-icon"    style="font-size:13px;">⬜</span> Envoi du profil &amp; statistiques</div>
+      <div id="step-films"    style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-films-icon"   style="font-size:13px;">⬜</span> Envoi des films</div>
+      <div id="step-series"   style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-series-icon"  style="font-size:13px;">⬜</span> Envoi des séries</div>
+      <div id="step-music"    style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-music-icon"   style="font-size:13px;">⬜</span> Envoi de la musique</div>
+      <div id="step-done"     style="font-size:11px;color:#8892a4;display:flex;align-items:center;gap:7px;"><span id="step-done-icon"    style="font-size:13px;">⬜</span> Finalisation</div>
+    </div>
+    <div id="gh-upload-actions" style="display:none;margin-top:18px">
+
+      <button class="gh-btn-primary" onclick="closeGHUpload()" style="width:100%">✓ Fermer</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -3789,46 +3996,211 @@ function parseCSVRow(line, sep) {
   return result;
 }
 
+// ===== IMPORT JSON PROFIL =====
+function handleImportFile(input) {
+  const file = input.files[0]; if (!file) return;
+  input.value = '';
+  if (file.name.toLowerCase().endsWith('.json')) {
+    importProfileJSON(file);
+  } else {
+    // CSV : flux habituel via modale Discord
+    _pendingCSVFile = file;
+    const overlay = document.getElementById('discord-modal-overlay');
+    const nameInput = document.getElementById('discord-name-input');
+    if (nameInput) nameInput.value = _discordName || '';
+    if (overlay) overlay.style.display = 'flex';
+    setTimeout(() => { if (nameInput) nameInput.focus(); }, 80);
+  }
+}
+
+function importProfileJSON(file) {
+  _showProgress('Lecture du fichier JSON…', 0);
+  const reader = new FileReader();
+  reader.onerror = () => { _hideProgress(); alert('Impossible de lire le fichier JSON.'); };
+  reader.onload = function(e) {
+    setTimeout(() => {
+      try {
+        const profile = JSON.parse(e.target.result);
+        if (!profile || typeof profile !== 'object') throw new Error('Format JSON invalide.');
+
+        // Récupérer le nom Discord
+        const discordName = profile.discord_name || profile.user || '';
+        if (discordName) {
+          _discordName = discordName;
+          const badge = document.getElementById('discord-name-badge');
+          const display = document.getElementById('discord-name-display');
+          if (badge) badge.style.display = 'inline-flex';
+          if (display) display.textContent = discordName;
+          const dashBadge = document.getElementById('dashboard-discord-name');
+          const dashText  = document.getElementById('dashboard-discord-name-text');
+          if (dashBadge) dashBadge.style.display = 'inline-flex';
+          if (dashText)  dashText.textContent = discordName;
+        }
+
+        _showProgress('Conversion des données…', 20);
+
+        // Remapper les clés courtes JSON → champs internes
+        const films = (profile.films || []).map(f => ({
+          title:          f.t || '',
+          year:           f.y || '',
+          genres:         f.g || '',
+          resolution:     f.r || '',
+          videoCodec:     f.vc || '',
+          audioCodec:     f.ac || '',
+          audienceRating: f.rt != null ? f.rt : '',
+          actors:         f.a || '',
+          director:       f.d || '',
+          durationMin:    f.du != null ? f.du : '',
+          fileSizeGB:     f.sz != null ? f.sz : '',
+          bitrateKbps:    f.bk != null ? f.bk : '',
+          is10bit:        f.hd != null ? f.hd : 0,
+          library:        'Films',
+        })).filter(f => f.title);
+
+        const series = (profile.series || []).map(s => {
+          const ep  = s.ep != null ? +s.ep  : 1;
+          const du  = s.du != null ? +s.du  : 0;
+          // du dans le JSON = durée totale de la série (somme des épisodes)
+          // durationMin attendu par le dashboard = durée par épisode
+          const durPerEp = ep > 0 ? Math.round(du / ep) : du;
+          return {
+            title:          s.t || '',
+            year:           s.y || '',
+            genres:         s.g || '',
+            resolution:     s.r || '',
+            videoCodec:     s.vc || '',
+            audioCodec:     s.ac || '',
+            videoProfile:   s.vp || '',
+            audienceRating: s.rt != null ? s.rt : '',
+            actors:         s.a || '',
+            seasons:        s.se != null ? s.se : '',
+            episodes:       ep,
+            durationMin:    durPerEp || '',
+            fileSizeGB:     s.sz != null ? s.sz : '',
+            is10bit:        s.hd != null ? s.hd : 0,
+            library:        'Séries TV',
+          };
+        }).filter(s => s.title);
+
+        const music = (profile.music || []).map(m => ({
+          title:             m.t || '',
+          music_artist:      m.ar || '',
+          music_album:       m.al || '',
+          genres:            m.g || '',
+          music_genre:       m.g || '',
+          year:              m.y || '',
+          audioCodec:        m.ac || '',
+          durationMin:       m.du != null ? m.du : '',
+          fileSizeGB:        m.sz != null ? m.sz : '',
+          bitrateKbps:       m.bk != null ? m.bk : '',
+          music_bitrate_kbps:m.bk != null ? m.bk : '',
+          library:           'Musique',
+        })).filter(m => m.title);
+
+        _showProgress('Agrégation des séries…', 40);
+
+        // Séries : déjà pré-agrégées dans le JSON, pas besoin de re-agréger
+        // On s'assure juste que les champs numériques sont bien des nombres
+        series.forEach(s => {
+          if (s.episodes    !== '') s.episodes    = +s.episodes    || 0;
+          if (s.seasons     !== '') s.seasons     = +s.seasons     || 0;
+          if (s.fileSizeGB  !== '') s.fileSizeGB  = +s.fileSizeGB  || 0;
+          if (s.durationMin !== '') s.durationMin = +s.durationMin || 0;
+        });
+        films.forEach(f => {
+          if (f.fileSizeGB    !== '') f.fileSizeGB    = +f.fileSizeGB    || 0;
+          if (f.durationMin   !== '') f.durationMin   = +f.durationMin   || 0;
+          if (f.audienceRating!== '') f.audienceRating= +f.audienceRating|| 0;
+          if (f.bitrateKbps   !== '') f.bitrateKbps   = +f.bitrateKbps   || 0;
+          if (f.is10bit       !== '') f.is10bit       = +f.is10bit       || 0;
+        });
+        music.forEach(m => {
+          if (m.durationMin        !== '') m.durationMin        = +m.durationMin        || 0;
+          if (m.fileSizeGB         !== '') m.fileSizeGB         = +m.fileSizeGB         || 0;
+          if (m.bitrateKbps        !== '') m.bitrateKbps        = +m.bitrateKbps        || 0;
+          if (m.music_bitrate_kbps !== '') m.music_bitrate_kbps = +m.music_bitrate_kbps || 0;
+        });
+
+        _showProgress('Mise à jour des tableaux…', 70);
+
+        if (films.length)  { FILMS=films;   fFiltered=[...films];   initFilmsTab(); }
+        if (series.length) { SERIES=series; sFiltered=[...series];  initSeriesTab(); }
+        if (music.length)  { MUSIC=music;   mFiltered=[...music];   initMusicTab(); }
+
+        _showProgress('Calcul des statistiques…', 90);
+
+        setTimeout(() => {
+          rebuildStats();
+          _showProgress('Terminé !', 100);
+          setTimeout(() => {
+            _hideProgress();
+            const summary = [
+              films.length  ? films.length  + ' films'          : '',
+              series.length ? series.length + ' séries'         : '',
+              music.length  ? music.length  + ' pistes musicales' : '',
+            ].filter(Boolean).join(', ');
+            alert('✅ Profil JSON "' + file.name + '" importé avec succès\n' + summary);
+          }, 400);
+        }, 0);
+
+      } catch(err) {
+        _hideProgress();
+        console.error('Import JSON error:', err);
+        alert('Erreur lors de l\'import JSON :\n' + err.message);
+      }
+    }, 30);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
 // ===== EXPORT PROFIL JSON (pour Plex Finder) =====
 function exportProfileJSON() {
   const allData = [...FILMS, ...SERIES, ...MUSIC, ...DOCS, ...AUTRES, ...CONCERT];
-  if (!allData.length) { alert('Aucune donnée à exporter. Importez d'abord un CSV.'); return; }
+  if (!allData.length) { alert('Aucune donnée à exporter. Importez d\'abord un CSV.'); return; }
 
   let username = _discordName;
   if (!username) {
-    username = prompt('Pseudo Discord :', '');
+    username = prompt('Pseudo Discord (tel qu\'il apparaît sur le serveur Discord partagé) :', '');
     if (!username || !username.trim()) return;
     username = username.trim();
   }
 
+  // Films
   const films = FILMS.map(f => {
     const o = { t: f.title, y: +f.year||null };
     if (f.genres)         o.g  = f.genres;
     if (f.resolution)     o.r  = f.resolution;
     if (f.videoCodec)     o.vc = f.videoCodec;
+    if (f.audioCodec)     o.ac = f.audioCodec;
     if (f.audienceRating) o.rt = +f.audienceRating||null;
     if (f.actors)         o.a  = f.actors;
     if (f.director)       o.d  = f.director;
     if (f.durationMin)    o.du = +f.durationMin||null;
     if (f.fileSizeGB)     o.sz = +f.fileSizeGB||null;
+    if (f.bitrateKbps)    o.bk = +f.bitrateKbps||null;
     if (f.is10bit)        o.hd = +f.is10bit;
     return o;
   });
 
+  // Séries
   const series = SERIES.map(s => {
     const o = { t: s.title, y: +s.year||null };
     if (s.genres)         o.g  = s.genres;
     if (s.resolution)     o.r  = s.resolution;
     if (s.videoCodec)     o.vc = s.videoCodec;
+    if (s.audioCodec)     o.ac = s.audioCodec;
+    if (s.videoProfile)   o.vp = s.videoProfile;
     if (s.audienceRating) o.rt = +s.audienceRating||null;
     if (s.actors)         o.a  = s.actors;
     if (s.seasons)        o.se = +s.seasons||null;
     if (s.episodes)       o.ep = +s.episodes||null;
     if (s.durationMin)    o.du = +s.durationMin||null;
     if (s.fileSizeGB)     o.sz = +s.fileSizeGB||null;
+    if (s.is10bit)        o.hd = +s.is10bit;
     return o;
   });
 
+  // Musique
   const music = MUSIC.map(m => {
     const o = { t: m.title };
     if (m.music_artist)  o.ar = m.music_artist;
@@ -3836,49 +4208,391 @@ function exportProfileJSON() {
     if (m.genres || m.music_genre) o.g = m.genres || m.music_genre;
     if (m.year)          o.y  = +m.year||null;
     if (m.audioCodec)    o.ac = m.audioCodec;
+    if (m.durationMin || m.music_duration_min) o.du = +(m.durationMin||m.music_duration_min)||null;
+    if (m.fileSizeGB || m.music_size_mb) o.sz = m.fileSizeGB ? +m.fileSizeGB : (m.music_size_mb ? +(m.music_size_mb)/1024 : null);
+    if (m.bitrateKbps || m.music_bitrate_kbps) o.bk = +(m.bitrateKbps||m.music_bitrate_kbps)||null;
     return o;
   });
 
-  const filmGenres = {}; FILMS.forEach(f => (f.genres||'').split('|').forEach(gn => { gn=gn.trim(); if(gn) filmGenres[gn]=(filmGenres[gn]||0)+1; }));
-  const seriesGenres = {}; SERIES.forEach(s => (s.genres||'').split('|').forEach(gn => { gn=gn.trim(); if(gn) seriesGenres[gn]=(seriesGenres[gn]||0)+1; }));
-  const musicGenres = {}; MUSIC.forEach(m => { const gn=(m.genres||m.music_genre||'').trim(); if(gn) musicGenres[gn]=(musicGenres[gn]||0)+1; });
-  const directors = {}; FILMS.forEach(f => { if(f.director) directors[f.director]=(directors[f.director]||0)+1; });
+  // Stats
+  const filmGenres = {};
+  FILMS.forEach(f => (f.genres||'').split('|').forEach(gn => { gn=gn.trim(); if(gn) filmGenres[gn]=(filmGenres[gn]||0)+1; }));
+  const seriesGenres = {};
+  SERIES.forEach(s => (s.genres||'').split('|').forEach(gn => { gn=gn.trim(); if(gn) seriesGenres[gn]=(seriesGenres[gn]||0)+1; }));
+  const musicGenres = {};
+  MUSIC.forEach(m => { const gn=(m.genres||m.music_genre||'').trim(); if(gn) musicGenres[gn]=(musicGenres[gn]||0)+1; });
+  const directors = {};
+  FILMS.forEach(f => { if(f.director) directors[f.director]=(directors[f.director]||0)+1; });
   const actors = {};
   FILMS.forEach(f => (f.actors||'').split('|').forEach(a => { a=a.trim(); if(a) actors[a]=(actors[a]||0)+1; }));
   SERIES.forEach(s => (s.actors||'').split('|').forEach(a => { a=a.trim(); if(a) actors[a]=(actors[a]||0)+1; }));
   const topN = (obj, n) => Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,n).map(e=>e[0]);
 
+  // Résolutions films
+  const filmResMap = {};
+  FILMS.forEach(f => { const r=f.resolution||''; if(r) filmResMap[r]=(filmResMap[r]||0)+1; });
+  // Résolutions séries
+  const seriesResMap = {};
+  SERIES.forEach(s => { const r=s.resolution||''; if(r) seriesResMap[r]=(seriesResMap[r]||0)+1; });
+  // Codecs vidéo films
+  const filmVCodecMap = {};
+  FILMS.forEach(f => { const c=f.videoCodec||''; if(c) filmVCodecMap[c]=(filmVCodecMap[c]||0)+1; });
+  // Codecs vidéo séries
+  const seriesVCodecMap = {};
+  SERIES.forEach(s => { const c=s.videoCodec||''; if(c) seriesVCodecMap[c]=(seriesVCodecMap[c]||0)+1; });
+  // Codecs audio films
+  const filmACodecMap = {};
+  FILMS.forEach(f => { const c=f.audioCodec||''; if(c) filmACodecMap[c]=(filmACodecMap[c]||0)+1; });
+  // Codecs audio séries
+  const seriesACodecMap = {};
+  SERIES.forEach(s => { const c=s.audioCodec||''; if(c) seriesACodecMap[c]=(seriesACodecMap[c]||0)+1; });
+  // Codec audio musique
+  const musicACodecMap = {};
+  MUSIC.forEach(m => { const c=m.audioCodec||''; if(c) musicACodecMap[c]=(musicACodecMap[c]||0)+1; });
+
+  // Moyennes
+  const _avg = (arr, key) => { const vals=arr.map(x=>+(x[key]||0)).filter(v=>v>0); return vals.length ? +(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2) : null; };
+  const _sum = (arr, key) => +arr.reduce((s,x)=>s+(+(x[key]||0)),0).toFixed(2);
+
+  // Stockages
+  const filmsSizeGB   = _sum(FILMS, 'fileSizeGB');
+  const seriesSizeGB  = _sum(SERIES, 'fileSizeGB');
+  const musicSizeMB   = _sum(MUSIC, 'music_file_size_mb') || _sum(MUSIC.map(m=>({v:(+m.fileSizeGB||0)*1024})), 'v');
+  const totalSizeTB   = +((filmsSizeGB + seriesSizeGB) / 1000).toFixed(2);
+
+  // Films par année (top 10 années)
+  const filmsByYear = {};
+  FILMS.forEach(f => { const y=f.year||''; if(y) filmsByYear[y]=(filmsByYear[y]||0)+1; });
+  // Séries par année (top 10)
+  const seriesByYear = {};
+  SERIES.forEach(s => { const y=s.year||''; if(y) seriesByYear[y]=(seriesByYear[y]||0)+1; });
+
+  // Distribution des notes films
+  const filmRatDist = {};
+  FILMS.forEach(f => { const r=Math.floor(+(f.audienceRating||0)); if(r>0) filmRatDist[r]=(filmRatDist[r]||0)+1; });
+  // Distribution des notes séries
+  const seriesRatDist = {};
+  SERIES.forEach(s => { const r=Math.floor(+(s.audienceRating||0)); if(r>0) seriesRatDist[r]=(seriesRatDist[r]||0)+1; });
+
+  const topNPairs = (obj, n) => Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,n).reduce((acc,[k,v])=>{acc[k]=v;return acc;},{});
+
+  // Nom de fichier : pseudo_YYYYMMDD.json
   const discordSlug = username.toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
   const now = new Date();
-  const dateStr = now.getFullYear().toString() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
+  const dateStr = now.getFullYear().toString()
+    + String(now.getMonth()+1).padStart(2,'0')
+    + String(now.getDate()).padStart(2,'0');
   const filename = discordSlug + '_' + dateStr + '.json';
 
   const profile = {
-    user: username, discord_name: username,
-    updated: now.toISOString().slice(0,10),
-    filename,
+    user:         username,
+    discord_name: username,
+    updated:      now.toISOString().slice(0,10),
+    filename:     filename,
     stats: {
-      films_count: FILMS.length, series_count: SERIES.length, music_count: MUSIC.length,
-      total_size_tb: +((FILMS.reduce((s,f)=>s+(+f.fileSizeGB||0),0)+SERIES.reduce((s,x)=>s+(+x.fileSizeGB||0),0))/1000).toFixed(2),
-      pct_4k_films: FILMS.length ? Math.round(FILMS.filter(f=>f.resolution==='4K').length/FILMS.length*100) : 0,
-      top_film_genres: topN(filmGenres,15), top_series_genres: topN(seriesGenres,15),
-      top_music_genres: topN(musicGenres,10), top_directors: topN(directors,20), top_actors: topN(actors,30),
+      // Comptages
+      films_count:        FILMS.length,
+      series_count:       SERIES.length,
+      episodes_count:     SERIES.reduce((s,x)=>s+(+x.episodes||0),0),
+      music_count:        MUSIC.length,
+      docs_count:         DOCS.length,
+      concerts_count:     CONCERT.length,
+
+      // Stockage
+      films_size_gb:      filmsSizeGB,
+      series_size_gb:     seriesSizeGB,
+      total_size_tb:      totalSizeTB,
+
+      // Qualité films
+      pct_4k_films:       FILMS.length ? Math.round(FILMS.filter(f=>f.resolution==='4K').length/FILMS.length*100) : 0,
+      pct_1080_films:     FILMS.length ? Math.round(FILMS.filter(f=>f.resolution==='1080p').length/FILMS.length*100) : 0,
+      pct_hevc_films:     FILMS.length ? Math.round(FILMS.filter(f=>(f.videoCodec||'').toLowerCase()==='hevc').length/FILMS.length*100) : 0,
+      pct_10bit_films:    FILMS.length ? Math.round(FILMS.filter(f=>+f.is10bit===1).length/FILMS.length*100) : 0,
+      film_res_dist:      topNPairs(filmResMap, 8),
+      film_vcodec_dist:   topNPairs(filmVCodecMap, 8),
+      film_acodec_dist:   topNPairs(filmACodecMap, 8),
+
+      // Qualité séries
+      pct_4k_series:      SERIES.length ? Math.round(SERIES.filter(s=>s.resolution==='4K').length/SERIES.length*100) : 0,
+      pct_1080_series:    SERIES.length ? Math.round(SERIES.filter(s=>s.resolution==='1080p').length/SERIES.length*100) : 0,
+      pct_hevc_series:    SERIES.length ? Math.round(SERIES.filter(s=>(s.videoCodec||'').toLowerCase()==='hevc').length/SERIES.length*100) : 0,
+      series_res_dist:    topNPairs(seriesResMap, 8),
+      series_vcodec_dist: topNPairs(seriesVCodecMap, 8),
+      series_acodec_dist: topNPairs(seriesACodecMap, 8),
+
+      // Moyennes
+      avg_rating_films:   _avg(FILMS, 'audienceRating'),
+      avg_rating_series:  _avg(SERIES, 'audienceRating'),
+      avg_dur_films_min:  _avg(FILMS, 'durationMin'),
+      avg_dur_series_min: _avg(SERIES, 'durationMin'),
+      avg_bitrate_films_kbps: _avg(FILMS, 'bitrateKbps'),
+
+      // Années médianes
+      median_year_films:  FILMS.length ? +(FILMS.map(f=>+f.year||0).filter(y=>y>0).sort((a,b)=>a-b)[Math.floor(FILMS.length/2)]||null) : null,
+      median_year_series: SERIES.length ? +(SERIES.map(s=>+s.year||0).filter(y=>y>0).sort((a,b)=>a-b)[Math.floor(SERIES.length/2)]||null) : null,
+
+      // Distributions temporelles
+      films_by_year:      topNPairs(filmsByYear, 60),
+      series_by_year:     topNPairs(seriesByYear, 40),
+      film_rating_dist:   filmRatDist,
+      series_rating_dist: seriesRatDist,
+
+      // Musique
+      pct_flac_music:     MUSIC.length ? Math.round(MUSIC.filter(m=>(m.audioCodec||'').toLowerCase()==='flac').length/MUSIC.length*100) : 0,
+      music_acodec_dist:  topNPairs(musicACodecMap, 6),
+      avg_bitrate_music_kbps: _avg(MUSIC.map(m=>({v:+(m.bitrateKbps||m.music_bitrate_kbps||0)})), 'v'),
+
+      // Top listes
+      top_film_genres:    topN(filmGenres, 15),
+      top_series_genres:  topN(seriesGenres, 15),
+      top_music_genres:   topN(musicGenres, 10),
+      top_directors:      topN(directors, 20),
+      top_actors:         topN(actors, 30),
     },
-    films, series, music
+    films,
+    series,
+    music
   };
 
   const json = JSON.stringify(profile);
+
+  // 1. Téléchargement local
   const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 
-  const sizeMo = (json.length / 1024 / 1024).toFixed(2);
-  alert('✅ Profil exporté !\n\nFichier : ' + filename + '\nTaille  : ' + sizeMo + ' Mo\nEntrées : ' + FILMS.length + ' films · ' + SERIES.length + ' séries · ' + MUSIC.length + ' pistes');
+  // 2. Upload Firebase automatique
+  _uploadToFirebase(json, filename, username);
 }
 
+// ════════════════════════════════════════
+// FIREBASE — upload profil JSON
+// ════════════════════════════════════════
+function _updateGHConfigBtn() {
+  const btn = document.getElementById('gh-config-topbar-btn');
+  if (btn) { btn.innerHTML = '✅ Firebase'; btn.title = 'Upload Firebase activé'; }
+}
 
+function closeGHUpload() {
+  const el = document.getElementById('gh-upload-modal-overlay');
+  if (el) el.style.display = 'none';
+}
+
+// ════════════════════════════════════════
+// UPLOAD VERS FIREBASE FIRESTORE
+// Stratégie : 1 doc "profil" léger (meta + stats) + sous-collections
+// films / series / music en chunks de 400KB max → contourne la limite 1MB
+// ════════════════════════════════════════
+async function _uploadToFirebase(jsonContent, filename, username) {
+  const uploadOverlay  = document.getElementById('gh-upload-modal-overlay');
+  const uploadIcon     = document.getElementById('gh-upload-icon');
+  const uploadTitle    = document.getElementById('gh-upload-title');
+  const uploadMsg      = document.getElementById('gh-upload-msg');
+  const uploadActions  = document.getElementById('gh-upload-actions');
+  const uploadBar      = document.getElementById('gh-upload-bar');
+  const uploadPct      = document.getElementById('gh-upload-pct');
+  const uploadStepLbl  = document.getElementById('gh-upload-step-label');
+
+  // ── Helpers UI ──
+  function setUpload(icon, title, msg) {
+    if (uploadIcon)  uploadIcon.textContent  = icon;
+    if (uploadTitle) uploadTitle.textContent = title;
+    if (uploadMsg)   uploadMsg.innerHTML     = msg;
+  }
+  function setBar(pct, label) {
+    if (uploadBar)     uploadBar.style.width = pct + '%';
+    if (uploadPct)     uploadPct.textContent = pct + ' %';
+    if (uploadStepLbl) uploadStepLbl.textContent = label || '';
+  }
+  function setStep(id, state) { // state: 'pending'|'active'|'done'|'error'
+    const icon = document.getElementById('step-' + id + '-icon');
+    const row  = document.getElementById('step-' + id);
+    if (!icon || !row) return;
+    const map = { pending:'⬜', active:'🔄', done:'✅', error:'❌' };
+    const col  = { pending:'#8892a4', active:'#e5a00d', done:'#22c55e', error:'#ef4444' };
+    icon.textContent = map[state] || '⬜';
+    row.style.color  = col[state]  || '#8892a4';
+  }
+
+  // ── Découpe un tableau en chunks de ~maxBytes octets JSON ──
+  function chunkArray(arr, maxBytes) {
+    const chunks = [];
+    let current = [], currentSize = 0;
+    for (const item of arr) {
+      const s = JSON.stringify(item).length + 1; // +1 for comma
+      if (currentSize + s > maxBytes && current.length > 0) {
+        chunks.push(current);
+        current = []; currentSize = 0;
+      }
+      current.push(item);
+      currentSize += s;
+    }
+    if (current.length) chunks.push(current);
+    return chunks;
+  }
+
+  // ── Init modal ──
+  if (uploadOverlay)  uploadOverlay.style.display  = 'flex';
+  if (uploadActions)  uploadActions.style.display  = 'none';
+  document.getElementById('gh-upload-progress-wrap').style.display = 'block';
+  ['prepare','meta','films','series','music','done'].forEach(s => setStep(s, 'pending'));
+  setUpload('⏳', 'Upload Firebase en cours…', 'Préparation des données…');
+  setBar(0, 'Initialisation…');
+
+  // Limite Firestore : 1 048 576 octets. On vise 950 000 pour avoir de la marge.
+  const FIRESTORE_LIMIT = 950000;
+
+  try {
+    // ── ÉTAPE 1 : Préparer et mesurer ──
+    setStep('prepare', 'active');
+    setBar(5, 'Calcul de la taille du fichier…');
+    await new Promise(r => setTimeout(r, 40)); // laisser le DOM peindre
+
+    const data   = JSON.parse(jsonContent);
+    const films  = data.films  || [];
+    const series = data.series || [];
+    const music  = data.music  || [];
+
+    // Mesure du document complet tel qu'il serait envoyé
+    const fullDoc  = { ...data, _filename: filename, _updatedAt: new Date().toISOString() };
+    const fullSize = JSON.stringify(fullDoc).length;
+    const sizeKB   = (fullSize / 1024).toFixed(0);
+
+    setStep('prepare', 'done');
+    setBar(15, `Taille : ${sizeKB} KB — ${fullSize <= FIRESTORE_LIMIT ? '✔ envoi en 1 seul bloc' : '⚠ découpage nécessaire'}`);
+    await new Promise(r => setTimeout(r, 120)); // laisser l'utilisateur lire
+
+    const docRef = _db.collection('profils').doc(username);
+
+    // ════════════════════════════════════════════════
+    // CAS 1 : le document entier tient en 1 seul bloc
+    // ════════════════════════════════════════════════
+    if (fullSize <= FIRESTORE_LIMIT) {
+
+      setStep('meta', 'active');
+      setBar(30, 'Envoi en un seul document…');
+      await docRef.set(fullDoc);
+      setStep('meta', 'done');
+
+      // Les étapes films/séries/musique ne sont pas utilisées → grisées
+      ['films', 'series', 'music'].forEach(s => {
+        const icon = document.getElementById('step-' + s + '-icon');
+        const row  = document.getElementById('step-' + s);
+        if (icon) icon.textContent = '➖';
+        if (row)  row.style.color  = '#4a5568';
+      });
+
+      setBar(95, 'Finalisation…');
+      setStep('done', 'active');
+      await new Promise(r => setTimeout(r, 150));
+      setStep('done', 'done');
+      setBar(100, 'Upload terminé !');
+
+      setUpload('✅', 'Upload réussi !',
+        `<b>${filename}</b> sauvegardé en un seul document (${sizeKB} KB).<br>` +
+        `<small style="color:#8892a4">${films.length} films · ${series.length} séries · ${music.length} pistes</small>`);
+
+    // ════════════════════════════════════════════════
+    // CAS 2 : trop grand → découpage en sous-collections
+    // ════════════════════════════════════════════════
+    } else {
+
+      setBar(18, `${sizeKB} KB > 950 KB — découpage en parties…`);
+      await new Promise(r => setTimeout(r, 80));
+
+      // Doc principal allégé : meta + stats uniquement
+      const metaDoc = {
+        user:         data.user,
+        discord_name: data.discord_name,
+        updated:      data.updated,
+        filename:     data.filename || filename,
+        stats:        data.stats || {},
+        _filename:    filename,
+        _updatedAt:   new Date().toISOString(),
+        _chunked:     true,
+      };
+
+      // ── Meta ──
+      setStep('meta', 'active');
+      setBar(22, 'Envoi du profil et des statistiques…');
+      await docRef.set(metaDoc);
+      setStep('meta', 'done');
+      setBar(35, 'Profil sauvegardé — envoi des films…');
+
+      // ── Films ──
+      setStep('films', 'active');
+      const filmChunks = chunkArray(films, FIRESTORE_LIMIT - 2000);
+      for (let i = 0; i < filmChunks.length; i++) {
+        const pct = 35 + Math.round(((i + 1) / Math.max(filmChunks.length, 1)) * 20);
+        setBar(pct, `Films : partie ${i+1}/${filmChunks.length}…`);
+        await docRef.collection('data').doc('films_' + String(i).padStart(3,'0')).set({
+          chunk: i, total: filmChunks.length, items: filmChunks[i]
+        });
+      }
+      if (filmChunks.length === 0) {
+        await docRef.collection('data').doc('films_000').set({ chunk:0, total:0, items:[] });
+      }
+      setStep('films', 'done');
+      setBar(55, 'Films envoyés — envoi des séries…');
+
+      // ── Séries ──
+      setStep('series', 'active');
+      const seriesChunks = chunkArray(series, FIRESTORE_LIMIT - 2000);
+      for (let i = 0; i < seriesChunks.length; i++) {
+        const pct = 55 + Math.round(((i + 1) / Math.max(seriesChunks.length, 1)) * 20);
+        setBar(pct, `Séries : partie ${i+1}/${seriesChunks.length}…`);
+        await docRef.collection('data').doc('series_' + String(i).padStart(3,'0')).set({
+          chunk: i, total: seriesChunks.length, items: seriesChunks[i]
+        });
+      }
+      if (seriesChunks.length === 0) {
+        await docRef.collection('data').doc('series_000').set({ chunk:0, total:0, items:[] });
+      }
+      setStep('series', 'done');
+      setBar(75, 'Séries envoyées — envoi de la musique…');
+
+      // ── Musique ──
+      setStep('music', 'active');
+      const musicChunks = chunkArray(music, FIRESTORE_LIMIT - 2000);
+      for (let i = 0; i < musicChunks.length; i++) {
+        const pct = 75 + Math.round(((i + 1) / Math.max(musicChunks.length, 1)) * 15);
+        setBar(pct, `Musique : partie ${i+1}/${musicChunks.length}…`);
+        await docRef.collection('data').doc('music_' + String(i).padStart(3,'0')).set({
+          chunk: i, total: musicChunks.length, items: musicChunks[i]
+        });
+      }
+      if (musicChunks.length === 0) {
+        await docRef.collection('data').doc('music_000').set({ chunk:0, total:0, items:[] });
+      }
+      setStep('music', 'done');
+      setBar(95, 'Finalisation…');
+
+      setStep('done', 'active');
+      await new Promise(r => setTimeout(r, 200));
+      setStep('done', 'done');
+      setBar(100, 'Upload terminé !');
+
+      const totalChunks = (filmChunks.length||1) + (seriesChunks.length||1) + (musicChunks.length||1);
+      setUpload('✅', 'Upload réussi !',
+        `<b>${filename}</b> découpé en ${totalChunks} parties (${sizeKB} KB total).<br>` +
+        `<small style="color:#8892a4">${films.length} films · ${series.length} séries · ${music.length} pistes</small>`);
+    }
+
+    if (uploadActions) uploadActions.style.display = 'block';
+
+  } catch(err) {
+    ['prepare','meta','films','series','music','done'].forEach(s => {
+      const row = document.getElementById('step-' + s);
+      if (row && row.style.color === 'rgb(229, 160, 13)') setStep(s, 'error');
+    });
+    setUpload('❌', 'Erreur Firebase', err.message);
+    setBar(0, 'Erreur — voir détails ci-dessus');
+    if (uploadActions) uploadActions.style.display = 'block';
+    console.error('Firebase upload error:', err);
+  }
+}
 
 
 // ===== EXPORT CSV =====
@@ -3906,6 +4620,7 @@ function clearData() {
   ['genres-bars','top10-best','top10-worst','top10-heavy','top10-series-best','top10-series-worst','top10-series-heavy'].forEach(id=>{const el=g(id);if(el)el.innerHTML='';});
   ['total-val-display','total-hours-display','total-3h-display'].forEach(id=>{const el=g(id);if(el)el.textContent='';});
   const lbl=g('total-badge-label'); if(lbl) lbl.textContent='Durée totale cumulée · aucune donnée importée';
+  const ls=g('logo-sub'); if(ls) ls.textContent='';
   const tv=g('total-val-display'); if(tv) tv.textContent='—';
   document.querySelectorAll('.nav-tab .cnt').forEach(el=>el.textContent='0');
   _clearAllCharts();
@@ -4283,21 +4998,36 @@ function openInDashboard() {
   if (nameInput) { nameInput.value = ''; setTimeout(() => nameInput.focus(), 80); }
 }
 
-// Bouton "← Exporteur" dans la topbar du dashboard
+// Bouton "← Exporteur" maintenant dans le HTML statique — on appelle juste _updateGHConfigBtn
 (function addBackButton() {
-  const topbar = document.querySelector('.topbar');
-  if (!topbar) return;
-  const btn = document.createElement('button');
-  btn.className = 'action-btn';
-  btn.style.cssText = 'background:rgba(167,139,250,0.15);color:#a78bfa;border:1px solid rgba(167,139,250,0.35);margin-right:4px;';
-  btn.innerHTML = '← Exporteur';
-  btn.title = "Revenir à l\'exporteur Plex";
-  btn.onclick = function() {
-    document.body.classList.remove('dashboard-mode');
-    document.title = 'Plex Exporter & Dashboard';
-  };
-  topbar.insertBefore(btn, topbar.firstChild);
+  _updateGHConfigBtn();
 })();
+
+function openProfileInfoModal() {
+  const m = document.getElementById('profile-info-modal');
+  if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+function closeProfileInfoModal() {
+  const m = document.getElementById('profile-info-modal');
+  if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+}
+function openInfoModal() {
+  const m = document.getElementById('info-modal');
+  if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+function closeInfoModal() {
+  const m = document.getElementById('info-modal');
+  if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+}
+document.addEventListener('click', function(e) {
+  const m = document.getElementById('profile-info-modal');
+  if (m && e.target === m) closeProfileInfoModal();
+  const m2 = document.getElementById('info-modal');
+  if (m2 && e.target === m2) closeInfoModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { closeProfileInfoModal(); closeInfoModal(); }
+});
 </script>
 
 </body>
